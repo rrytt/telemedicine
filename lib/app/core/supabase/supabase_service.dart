@@ -1,0 +1,45 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class SupabaseService {
+  SupabaseService._();
+
+  static const String _defaultUrl =
+      'https://jwfjikikxeuebzedkgwc.supabase.co';
+  static const String _defaultAnonKey =
+      'sb_publishable_XpBqnrr8UkMmDj4q990DRg_fgz8Upd9';
+
+  static bool _isInitialized = false;
+  static bool _isConfigured = false;
+
+  static bool get isConfigured => _isConfigured;
+
+  static Future<void> initialize() async {
+    if (_isInitialized) {
+      return;
+    }
+
+    const String envUrl = String.fromEnvironment('SUPABASE_URL');
+    const String envAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+    final String url = envUrl.isEmpty ? _defaultUrl : envUrl;
+    final String anonKey = envAnonKey.isEmpty ? _defaultAnonKey : envAnonKey;
+
+    if (url.isEmpty || anonKey.isEmpty) {
+      _isInitialized = true;
+      _isConfigured = false;
+      return;
+    }
+
+    await Supabase.initialize(url: url, anonKey: anonKey);
+    _isInitialized = true;
+    _isConfigured = true;
+  }
+
+  static SupabaseClient get client {
+    if (!_isConfigured) {
+      throw StateError(
+        'Supabase is not configured. Provide SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define.',
+      );
+    }
+    return Supabase.instance.client;
+  }
+}
