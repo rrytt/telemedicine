@@ -7,6 +7,7 @@ import 'modules/auth/views/login_view.dart';
 import 'modules/auth/views/startup_view.dart';
 import 'modules/call/views/agora_call_view.dart';
 import 'modules/doctor/views/doctor_dashboard_view.dart';
+import 'modules/patient/views/chat_view.dart';
 import 'modules/patient/views/patient_dashboard_view.dart';
 import 'routes/app_pages.dart';
 import 'theme/github_theme.dart';
@@ -55,6 +56,10 @@ class TelemedicineApp extends StatelessWidget {
           GetPage<dynamic>(
             name: AppRoutes.call,
             page: () => const AgoraCallView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.chat,
+            page: () => const ChatView(),
           ),
         ],
       );

@@ -102,7 +102,10 @@ class LoginView extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      appBar: AppBar(
+        title: const Text('Telemedicine Platform'),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -127,6 +130,19 @@ class LoginView extends GetView<AuthController> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+                            // App Name
+                            const Center(
+                              child: Text(
+                                'Telemedicine Platform',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: GithubTheme.textPrimary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            // Title and Subtitle
                             Text(
                               _titleText(signUp: signUp, role: roleLabel),
                               style: const TextStyle(
@@ -141,7 +157,8 @@ class LoginView extends GetView<AuthController> {
                                 color: GithubTheme.textSecondary,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 20),
+                            // Account Type Selection
                             DropdownButtonFormField<AccountType>(
                               initialValue: role,
                               decoration: InputDecoration(
@@ -173,7 +190,8 @@ class LoginView extends GetView<AuthController> {
                                       }
                                     },
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
+                            // Sign In / Create Account Toggle
                             Container(
                               decoration: BoxDecoration(
                                 color: GithubTheme.bg,
@@ -232,8 +250,9 @@ class LoginView extends GetView<AuthController> {
                                   ),
                                 ),
                               ),
-                            const SizedBox(height: 12),
-                            TextField(
+                            const SizedBox(height: 20),
+                            // Email Field
+                            TextFormField(
                               controller: controller.emailController,
                               keyboardType: TextInputType.emailAddress,
                               enabled: !loading,
@@ -245,8 +264,9 @@ class LoginView extends GetView<AuthController> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            TextField(
+                            const SizedBox(height: 16),
+                            // Password Field
+                            TextFormField(
                               controller: controller.passwordController,
                               obscureText: true,
                               enabled: !loading,
@@ -300,7 +320,8 @@ class LoginView extends GetView<AuthController> {
                                 );
                               }),
                             ],
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 20),
+                            // Remember Me and Forgot Password
                             Row(
                               children: <Widget>[
                                 Obx(() {
@@ -325,7 +346,8 @@ class LoginView extends GetView<AuthController> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
+                            // Error Message
                             if (controller.errorMessage.value.isNotEmpty)
                               Container(
                                 width: double.infinity,
@@ -346,6 +368,7 @@ class LoginView extends GetView<AuthController> {
                                   ),
                                 ),
                               ),
+                            // Confirmation Button
                             SizedBox(
                               width: double.infinity,
                               child: FilledButton(
@@ -373,8 +396,6 @@ class LoginView extends GetView<AuthController> {
                   if (compact) {
                     return Column(
                       children: <Widget>[
-                        _heroPanel(context),
-                        const SizedBox(height: 12),
                         formCard,
                       ],
                     );

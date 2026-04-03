@@ -8,10 +8,11 @@ import '../../../routes/app_pages.dart';
 import '../../../core/supabase/supabase_service.dart';
 
 class DoctorOption {
-  const DoctorOption({required this.id, required this.name});
+  const DoctorOption({required this.id, required this.name, this.specialty});
 
   final String id;
   final String name;
+  final String? specialty;
 }
 
 class PatientAppointment {
@@ -41,6 +42,7 @@ class ChatMessageItem {
     this.message,
     this.attachmentName,
     this.attachmentType,
+    this.attachmentPath,
     this.deliveryStatus,
     this.seenAt,
     this.createdAt,
@@ -51,6 +53,7 @@ class ChatMessageItem {
   final String? message;
   final String? attachmentName;
   final String? attachmentType;
+  final String? attachmentPath;
   final String? deliveryStatus;
   final DateTime? seenAt;
   final DateTime? createdAt;
@@ -60,6 +63,8 @@ class PatientController extends GetxController {
   final RxList<PatientAppointment> appointments = <PatientAppointment>[].obs;
 
   final RxList<DoctorOption> doctors = <DoctorOption>[].obs;
+  final RxList<DoctorOption> filteredDoctors = <DoctorOption>[].obs;
+  final TextEditingController searchController = TextEditingController();
   final RxnString selectedDoctorId = RxnString();
   final Rxn<DateTime> selectedDateTime = Rxn<DateTime>();
   final RxBool isBooking = false.obs;
@@ -172,7 +177,23 @@ class PatientController extends GetxController {
     messageController.dispose();
     complaintTitleController.dispose();
     complaintBodyController.dispose();
+    searchController.dispose();
     super.onClose();
+  }
+
+  void searchDoctors(String query) {
+    if (query.isEmpty) {
+      filteredDoctors.assignAll(doctors);
+    } else {
+      filteredDoctors.assignAll(doctors.where((DoctorOption d) =>
+          d.name.toLowerCase().contains(query.toLowerCase()) ||
+          (d.specialty?.toLowerCase().contains(query.toLowerCase()) ?? false)));
+    }
+  }
+
+  void sendConsultationRequest(String doctorId) {
+    // TODO: Implement sending consultation request
+    Get.snackbar('Request Sent', 'Consultation request sent to doctor');
   }
 
   void _setupRealtimeMessages() {
@@ -248,6 +269,7 @@ class PatientController extends GetxController {
       }).toList();
 
       doctors.assignAll(list);
+      filteredDoctors.assignAll(list);
       selectedDoctorId.value ??= list.isNotEmpty ? list.first.id : null;
       if (list.isEmpty) {
         bookingError.value = 'No registered doctors found yet.';
@@ -444,7 +466,7 @@ class PatientController extends GetxController {
         response = await SupabaseService.client
             .from('chat_messages')
             .select(
-              'id, sender_id, message_text, attachment_name, attachment_type, delivery_status, seen_at, created_at',
+              'id, sender_id, message_text, attachment_name, attachment_type, attachment_path, delivery_status, seen_at, created_at',
             )
             .eq('appointment_id', appointmentId)
             .order('created_at', ascending: true)
@@ -453,7 +475,7 @@ class PatientController extends GetxController {
         response = await SupabaseService.client
             .from('chat_messages')
             .select(
-              'id, sender_id, message_text, attachment_name, attachment_type, created_at',
+              'id, sender_id, message_text, attachment_name, attachment_type, attachment_path, created_at',
             )
             .eq('appointment_id', appointmentId)
             .order('created_at', ascending: true)
@@ -469,6 +491,7 @@ class PatientController extends GetxController {
             message: map['message_text']?.toString(),
             attachmentName: map['attachment_name']?.toString(),
             attachmentType: map['attachment_type']?.toString(),
+            attachmentPath: map['attachment_path']?.toString(),
             deliveryStatus: map['delivery_status']?.toString(),
             seenAt: DateTime.tryParse(map['seen_at']?.toString() ?? ''),
             createdAt: DateTime.tryParse(map['created_at']?.toString() ?? ''),
