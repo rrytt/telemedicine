@@ -4,9 +4,9 @@ class SupabaseService {
   SupabaseService._();
 
   static const String _defaultUrl =
-      'https://jwfjikikxeuebzedkgwc.supabase.co';
+      'https://vppjkwwdaobdnfazdtci.supabase.co';
   static const String _defaultAnonKey =
-      'sb_publishable_XpBqnrr8UkMmDj4q990DRg_fgz8Upd9';
+      'sb_publishable_RyxjYM1aZrt55_FYGuqEAw_vFcPavQi';
 
   static bool _isInitialized = false;
   static bool _isConfigured = false;

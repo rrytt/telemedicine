@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.compile.JavaCompile
+
 allprojects {
     repositories {
         google()
@@ -17,6 +19,14 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+subprojects {
+    tasks.withType<JavaCompile>().configureEach {
+        // Some Android plugins still default to Java 8; enforce Java 17 to avoid obsolete option warnings.
+        sourceCompatibility = JavaVersion.VERSION_17.toString()
+        targetCompatibility = JavaVersion.VERSION_17.toString()
+    }
 }
 
 tasks.register<Delete>("clean") {

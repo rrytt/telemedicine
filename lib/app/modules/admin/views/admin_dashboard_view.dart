@@ -114,7 +114,10 @@ class AdminDashboardView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: <Widget>[
                           SizedBox(
                             width: 130,
@@ -148,7 +151,6 @@ class AdminDashboardView extends StatelessWidget {
                               },
                             ),
                           ),
-                          const SizedBox(width: 8),
                           FilledButton(
                             onPressed: () => controller.approveAccount(
                               account.id,
@@ -158,7 +160,6 @@ class AdminDashboardView extends StatelessWidget {
                               account.isApproved ? 'Unapprove' : 'Approve',
                             ),
                           ),
-                          const SizedBox(width: 8),
                           OutlinedButton(
                             onPressed: () => _showEditNameDialog(
                               context,
@@ -168,7 +169,6 @@ class AdminDashboardView extends StatelessWidget {
                             ),
                             child: const Text('Edit Name'),
                           ),
-                          const SizedBox(width: 8),
                           OutlinedButton(
                             onPressed: () => controller.deleteAccount(account.id),
                             child: const Text('Delete'),
@@ -263,7 +263,10 @@ class AdminDashboardView extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 8),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: <Widget>[
                           SizedBox(
                             width: 150,
@@ -301,7 +304,6 @@ class AdminDashboardView extends StatelessWidget {
                               },
                             ),
                           ),
-                          const SizedBox(width: 8),
                           OutlinedButton(
                             onPressed: () => _showRespondDialog(
                               context,

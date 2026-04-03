@@ -54,6 +54,29 @@ class AdminController extends GetxController {
     loadComplaints();
   }
 
+  String _friendlyError(Object error, String fallback) {
+    final String message = error.toString();
+    final String lower = message.toLowerCase();
+
+    if (lower.contains('permission denied') || lower.contains('row-level security')) {
+      return '$fallback You do not have admin permissions (RLS).';
+    }
+
+    if (lower.contains('jwt') || lower.contains('auth')) {
+      return '$fallback Session/auth issue. Please login again.';
+    }
+
+    if (lower.contains('stack depth limit exceeded') || lower.contains('54001')) {
+      return '$fallback Database RLS recursion detected (Postgres 54001). Update is_admin/is_doctor SQL functions to SECURITY DEFINER.';
+    }
+
+    if (message.isEmpty) {
+      return fallback;
+    }
+
+    return '$fallback $message';
+  }
+
   Future<void> loadAccounts() async {
     accountsError.value = '';
     if (!SupabaseService.isConfigured) {
@@ -63,6 +86,26 @@ class AdminController extends GetxController {
 
     try {
       isLoadingAccounts.value = true;
+
+      final String? userId = _currentUserId;
+      if (userId == null) {
+        accountsError.value = 'No active session. Please login again.';
+        return;
+      }
+
+      final Map<String, dynamic>? currentProfile = await SupabaseService.client
+          .from('profiles')
+          .select('role, is_approved')
+          .eq('id', userId)
+          .maybeSingle();
+
+      final String currentRole = currentProfile?['role']?.toString() ?? 'unknown';
+      if (currentRole != 'admin') {
+        accountsError.value =
+            'Current account is "$currentRole" and cannot read all accounts. Login with an admin account.';
+        return;
+      }
+
       final List<dynamic> response = await SupabaseService.client
           .from('profiles')
           .select('id, full_name, role, is_approved')
@@ -78,8 +121,8 @@ class AdminController extends GetxController {
           isApproved: map['is_approved'] == true,
         );
       }).toList());
-    } catch (_) {
-      accountsError.value = 'Failed to load accounts.';
+    } catch (e) {
+      accountsError.value = _friendlyError(e, 'Failed to load accounts.');
     } finally {
       isLoadingAccounts.value = false;
     }
@@ -173,8 +216,8 @@ class AdminController extends GetxController {
           adminResponse: map['admin_response']?.toString(),
         );
       }).toList());
-    } catch (_) {
-      complaintsError.value = 'Failed to load complaints.';
+    } catch (e) {
+      complaintsError.value = _friendlyError(e, 'Failed to load complaints.');
     } finally {
       isLoadingComplaints.value = false;
     }

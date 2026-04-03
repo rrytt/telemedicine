@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/agora/agora_service.dart';
 import '../../../routes/app_pages.dart';
@@ -42,6 +41,8 @@ class ChatMessageItem {
     this.message,
     this.attachmentName,
     this.attachmentType,
+    this.deliveryStatus,
+    this.seenAt,
     this.createdAt,
   });
 
@@ -50,34 +51,13 @@ class ChatMessageItem {
   final String? message;
   final String? attachmentName;
   final String? attachmentType;
+  final String? deliveryStatus;
+  final DateTime? seenAt;
   final DateTime? createdAt;
 }
 
 class PatientController extends GetxController {
-  final RxList<PatientAppointment> appointments = <PatientAppointment>[
-    const PatientAppointment(
-      id: 'demo-1',
-      doctorId: 'demo-d1',
-      doctor: 'Dr. Layan Ahmed - Cardiology',
-      time: 'Monday 11:00 AM',
-      status: 'Accepted',
-    ),
-    const PatientAppointment(
-      id: 'demo-2',
-      doctorId: 'demo-d2',
-      doctor: 'Dr. Nader Youssef - Dermatology',
-      time: 'Tuesday 4:30 PM',
-      status: 'Pending',
-      urgent: true,
-    ),
-    const PatientAppointment(
-      id: 'demo-3',
-      doctorId: 'demo-d3',
-      doctor: 'Dr. Sara Ali - Nutrition',
-      time: 'Thursday 9:00 AM',
-      status: 'Pending',
-    ),
-  ].obs;
+  final RxList<PatientAppointment> appointments = <PatientAppointment>[].obs;
 
   final RxList<DoctorOption> doctors = <DoctorOption>[].obs;
   final RxnString selectedDoctorId = RxnString();
@@ -85,13 +65,15 @@ class PatientController extends GetxController {
   final RxBool isBooking = false.obs;
 
   final TextEditingController messageController = TextEditingController();
-  final TextEditingController complaintTitleController = TextEditingController();
+  final TextEditingController complaintTitleController =
+      TextEditingController();
   final TextEditingController complaintBodyController = TextEditingController();
   final RxnString selectedChatAppointmentId = RxnString();
   final RxList<ChatMessageItem> messages = <ChatMessageItem>[].obs;
+  final RxMap<String, int> unreadCountsByAppointment = <String, int>{}.obs;
   final RxBool isLoadingMessages = false.obs;
   final RxBool isSendingMessage = false.obs;
-  Timer? _messagePoller;
+  RealtimeChannel? _messagesChannel;
 
   final RxBool isLoadingAppointments = false.obs;
   final RxString appointmentsError = ''.obs;
@@ -100,11 +82,15 @@ class PatientController extends GetxController {
   final RxBool isSubmittingComplaint = false.obs;
   final RxDouble uploadProgress = 0.0.obs;
   final RxBool isUploading = false.obs;
+  final RxString uploadStatusMessage = ''.obs;
+  final RxBool uploadStatusError = false.obs;
 
   String? get _currentUserId => SupabaseService.client.auth.currentUser?.id;
 
-  bool get hasAcceptedAppointmentForChat => appointments
-      .any((PatientAppointment item) => item.id == selectedChatAppointmentId.value && item.chatEnabled);
+  bool get hasAcceptedAppointmentForChat => appointments.any(
+    (PatientAppointment item) =>
+        item.id == selectedChatAppointmentId.value && item.chatEnabled,
+  );
 
   PatientAppointment? get selectedChatAppointment {
     for (final PatientAppointment item in appointments) {
@@ -115,32 +101,135 @@ class PatientController extends GetxController {
     return null;
   }
 
-  bool get canStartSelectedVideoCall => selectedChatAppointment?.chatEnabled ?? false;
+  bool get canStartSelectedVideoCall =>
+      selectedChatAppointment?.chatEnabled ?? false;
 
   bool isOwnMessage(String senderId) => senderId == _currentUserId;
+
+  int unreadForAppointment(String appointmentId) =>
+      unreadCountsByAppointment[appointmentId] ?? 0;
+
+  String formatMessageTime(DateTime? value) {
+    if (value == null) {
+      return '';
+    }
+    final DateTime local = value.toLocal();
+    final String hh = local.hour.toString().padLeft(2, '0');
+    final String mm = local.minute.toString().padLeft(2, '0');
+    return '$hh:$mm';
+  }
+
+  String messageStatusFor(ChatMessageItem message) {
+    if (!isOwnMessage(message.senderId)) {
+      return '';
+    }
+
+    final String dbStatus = (message.deliveryStatus ?? '').toLowerCase();
+    if (dbStatus == 'seen' || message.seenAt != null) {
+      return 'Seen';
+    }
+    if (dbStatus == 'delivered') {
+      return 'Delivered';
+    }
+    if (dbStatus == 'sent') {
+      return 'Sent';
+    }
+
+    final DateTime? createdAt = message.createdAt;
+    if (createdAt != null &&
+        DateTime.now().difference(createdAt).inSeconds < 8) {
+      return 'Sent';
+    }
+
+    final int index = messages.indexWhere(
+      (ChatMessageItem m) => m.id == message.id,
+    );
+    if (index != -1) {
+      final bool seenByReply = messages
+          .skip(index + 1)
+          .any((ChatMessageItem m) => !isOwnMessage(m.senderId));
+      if (seenByReply) {
+        return 'Seen';
+      }
+    }
+    return 'Delivered';
+  }
 
   @override
   void onInit() {
     super.onInit();
     loadDoctors();
     loadAppointments();
-    _messagePoller = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (selectedChatAppointmentId.value != null) {
-        loadMessages();
-      }
-    });
+    _setupRealtimeMessages();
   }
 
   @override
   void onClose() {
-    _messagePoller?.cancel();
+    if (_messagesChannel != null) {
+      SupabaseService.client.removeChannel(_messagesChannel!);
+      _messagesChannel = null;
+    }
     messageController.dispose();
     complaintTitleController.dispose();
     complaintBodyController.dispose();
     super.onClose();
   }
 
+  void _setupRealtimeMessages() {
+    if (!SupabaseService.isConfigured) {
+      return;
+    }
+
+    if (_messagesChannel != null) {
+      SupabaseService.client.removeChannel(_messagesChannel!);
+      _messagesChannel = null;
+    }
+
+    final String channelName =
+        'patient-chat-${_currentUserId ?? DateTime.now().millisecondsSinceEpoch}';
+    _messagesChannel = SupabaseService.client
+        .channel(channelName)
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'chat_messages',
+          callback: (PostgresChangePayload payload) {
+            final String? selected = selectedChatAppointmentId.value;
+            if (selected == null) {
+              return;
+            }
+
+            final String newAppointment =
+                payload.newRecord['appointment_id']?.toString() ?? '';
+            final String oldAppointment =
+                payload.oldRecord['appointment_id']?.toString() ?? '';
+            if (newAppointment == selected || oldAppointment == selected) {
+              loadMessages();
+            } else {
+              _loadUnreadCounts();
+            }
+          },
+        )
+        .subscribe();
+  }
+
+  String _friendlyError(Object error) {
+    final String message = error.toString();
+    final String lower = message.toLowerCase();
+    if (lower.contains('permission denied') ||
+        lower.contains('row-level security')) {
+      return 'Permission denied by database policy.';
+    }
+    if (lower.contains('network') ||
+        lower.contains('socket') ||
+        lower.contains('host')) {
+      return 'Network error while connecting to Supabase.';
+    }
+    return 'Unexpected Supabase error.';
+  }
+
   Future<void> loadDoctors() async {
+    bookingError.value = '';
     if (!SupabaseService.isConfigured) {
       return;
     }
@@ -160,8 +249,11 @@ class PatientController extends GetxController {
 
       doctors.assignAll(list);
       selectedDoctorId.value ??= list.isNotEmpty ? list.first.id : null;
-    } catch (_) {
-      // Keep silent fallback for demo mode.
+      if (list.isEmpty) {
+        bookingError.value = 'No registered doctors found yet.';
+      }
+    } catch (e) {
+      bookingError.value = 'Failed to load doctors list. ${_friendlyError(e)}';
     }
   }
 
@@ -186,12 +278,14 @@ class PatientController extends GetxController {
 
     try {
       isBooking.value = true;
-      await SupabaseService.client.from('appointments').insert(<String, dynamic>{
-        'patient_id': userId,
-        'doctor_id': selectedDoctorId.value,
-        'scheduled_at': selectedDateTime.value!.toUtc().toIso8601String(),
-        'status': 'Pending',
-      });
+      await SupabaseService.client
+          .from('appointments')
+          .insert(<String, dynamic>{
+            'patient_id': userId,
+            'doctor_id': selectedDoctorId.value,
+            'scheduled_at': selectedDateTime.value!.toUtc().toIso8601String(),
+            'status': 'Pending',
+          });
 
       Get.snackbar('Booked', 'Appointment request sent to doctor.');
       await loadAppointments();
@@ -242,8 +336,8 @@ class PatientController extends GetxController {
         );
       }).toList();
 
+      appointments.assignAll(parsed);
       if (parsed.isNotEmpty) {
-        appointments.assignAll(parsed);
         PatientAppointment? accepted;
         for (final PatientAppointment item in parsed) {
           if (item.chatEnabled) {
@@ -255,6 +349,11 @@ class PatientController extends GetxController {
         if (selectedChatAppointmentId.value != null) {
           await loadMessages();
         }
+        await _loadUnreadCounts();
+      } else {
+        selectedChatAppointmentId.value = null;
+        messages.clear();
+        unreadCountsByAppointment.clear();
       }
     } catch (_) {
       appointmentsError.value = 'Failed to load appointments from Supabase.';
@@ -285,7 +384,10 @@ class PatientController extends GetxController {
 
   void openVideoCall(PatientAppointment appointment, {String? token}) {
     if (!appointment.chatEnabled) {
-      Get.snackbar('Info', 'Video call becomes available after doctor acceptance.');
+      Get.snackbar(
+        'Info',
+        'Video call becomes available after doctor acceptance.',
+      );
       return;
     }
 
@@ -337,28 +439,142 @@ class PatientController extends GetxController {
 
     try {
       isLoadingMessages.value = true;
-      final List<dynamic> response = await SupabaseService.client
-          .from('chat_messages')
-          .select('id, sender_id, message_text, attachment_name, attachment_type, created_at')
-          .eq('appointment_id', appointmentId)
-          .order('created_at', ascending: true)
-          .limit(200);
+      List<dynamic> response;
+      try {
+        response = await SupabaseService.client
+            .from('chat_messages')
+            .select(
+              'id, sender_id, message_text, attachment_name, attachment_type, delivery_status, seen_at, created_at',
+            )
+            .eq('appointment_id', appointmentId)
+            .order('created_at', ascending: true)
+            .limit(200);
+      } catch (_) {
+        response = await SupabaseService.client
+            .from('chat_messages')
+            .select(
+              'id, sender_id, message_text, attachment_name, attachment_type, created_at',
+            )
+            .eq('appointment_id', appointmentId)
+            .order('created_at', ascending: true)
+            .limit(200);
+      }
 
-      messages.assignAll(response.map((dynamic row) {
-        final Map<String, dynamic> map = row as Map<String, dynamic>;
-        return ChatMessageItem(
-          id: map['id']?.toString() ?? '',
-          senderId: map['sender_id']?.toString() ?? '',
-          message: map['message_text']?.toString(),
-          attachmentName: map['attachment_name']?.toString(),
-          attachmentType: map['attachment_type']?.toString(),
-          createdAt: DateTime.tryParse(map['created_at']?.toString() ?? ''),
-        );
-      }).toList());
+      messages.assignAll(
+        response.map((dynamic row) {
+          final Map<String, dynamic> map = row as Map<String, dynamic>;
+          return ChatMessageItem(
+            id: map['id']?.toString() ?? '',
+            senderId: map['sender_id']?.toString() ?? '',
+            message: map['message_text']?.toString(),
+            attachmentName: map['attachment_name']?.toString(),
+            attachmentType: map['attachment_type']?.toString(),
+            deliveryStatus: map['delivery_status']?.toString(),
+            seenAt: DateTime.tryParse(map['seen_at']?.toString() ?? ''),
+            createdAt: DateTime.tryParse(map['created_at']?.toString() ?? ''),
+          );
+        }).toList(),
+      );
+
+      await _markIncomingDeliveredAndSeen(appointmentId);
+      await _loadUnreadCounts();
     } catch (_) {
       messagesError.value = 'Failed to load chat messages.';
     } finally {
       isLoadingMessages.value = false;
+    }
+  }
+
+  Future<void> _markIncomingDeliveredAndSeen(String appointmentId) async {
+    final String? userId = _currentUserId;
+    if (userId == null) {
+      return;
+    }
+
+    try {
+      await SupabaseService.client
+          .from('chat_messages')
+          .update(<String, dynamic>{'delivery_status': 'delivered'})
+          .eq('appointment_id', appointmentId)
+          .neq('sender_id', userId)
+          .eq('delivery_status', 'sent');
+
+      await SupabaseService.client
+          .from('chat_messages')
+          .update(<String, dynamic>{
+            'delivery_status': 'seen',
+            'seen_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('appointment_id', appointmentId)
+          .neq('sender_id', userId)
+          .neq('delivery_status', 'seen');
+    } catch (_) {
+      // Keep compatibility with databases that don't have status columns yet.
+    }
+  }
+
+  Future<void> _insertChatMessage(Map<String, dynamic> payload) async {
+    final Map<String, dynamic> withStatus = <String, dynamic>{
+      ...payload,
+      'delivery_status': 'sent',
+    };
+
+    try {
+      await SupabaseService.client.from('chat_messages').insert(withStatus);
+    } catch (_) {
+      await SupabaseService.client.from('chat_messages').insert(payload);
+    }
+  }
+
+  Future<void> _loadUnreadCounts() async {
+    final String? userId = _currentUserId;
+    if (userId == null) {
+      unreadCountsByAppointment.clear();
+      return;
+    }
+
+    final List<String> ids = appointments
+        .where((PatientAppointment item) => item.chatEnabled)
+        .map((PatientAppointment item) => item.id)
+        .toList();
+
+    if (ids.isEmpty) {
+      unreadCountsByAppointment.clear();
+      return;
+    }
+
+    final Map<String, int> counts = <String, int>{
+      for (final String id in ids) id: 0,
+    };
+
+    try {
+      List<dynamic> response;
+      try {
+        response = await SupabaseService.client
+            .from('chat_messages')
+            .select('appointment_id, sender_id, delivery_status')
+            .inFilter('appointment_id', ids)
+            .neq('sender_id', userId)
+            .neq('delivery_status', 'seen');
+      } catch (_) {
+        response = await SupabaseService.client
+            .from('chat_messages')
+            .select('appointment_id, sender_id')
+            .inFilter('appointment_id', ids)
+            .neq('sender_id', userId);
+      }
+
+      for (final dynamic row in response) {
+        final Map<String, dynamic> map = row as Map<String, dynamic>;
+        final String appointmentId = map['appointment_id']?.toString() ?? '';
+        if (counts.containsKey(appointmentId)) {
+          counts[appointmentId] = (counts[appointmentId] ?? 0) + 1;
+        }
+      }
+
+      unreadCountsByAppointment.assignAll(counts);
+    } catch (_) {
+      // Keep existing counters on transient query failures.
     }
   }
 
@@ -376,7 +592,7 @@ class PatientController extends GetxController {
 
     try {
       isSendingMessage.value = true;
-      await SupabaseService.client.from('chat_messages').insert(<String, dynamic>{
+      await _insertChatMessage(<String, dynamic>{
         'appointment_id': appointmentId,
         'sender_id': userId,
         'message_text': text,
@@ -431,6 +647,8 @@ class PatientController extends GetxController {
 
     try {
       isUploading.value = true;
+      uploadStatusError.value = false;
+      uploadStatusMessage.value = 'Uploading file to secure storage...';
       uploadProgress.value = 0.2;
 
       final String safeName = file.name.replaceAll(' ', '_');
@@ -442,16 +660,18 @@ class PatientController extends GetxController {
           .uploadBinary(path, file.bytes!);
       uploadProgress.value = 0.7;
 
-      await SupabaseService.client.from('medical_files').insert(<String, dynamic>{
-        'patient_id': userId,
-        'doctor_id': appt.doctorId,
-        'uploaded_by': userId,
-        'file_name': file.name,
-        'file_path': path,
-        'content_type': file.extension,
-      });
+      await SupabaseService.client
+          .from('medical_files')
+          .insert(<String, dynamic>{
+            'patient_id': userId,
+            'doctor_id': appt.doctorId,
+            'uploaded_by': userId,
+            'file_name': file.name,
+            'file_path': path,
+            'content_type': file.extension,
+          });
 
-      await SupabaseService.client.from('chat_messages').insert(<String, dynamic>{
+      await _insertChatMessage(<String, dynamic>{
         'appointment_id': appointmentId,
         'sender_id': userId,
         'attachment_path': path,
@@ -460,9 +680,13 @@ class PatientController extends GetxController {
       });
 
       uploadProgress.value = 1;
+      uploadStatusMessage.value =
+          'Upload complete. File shared with your doctor.';
       Get.snackbar('Uploaded', 'File sent to doctor in chat.');
       await loadMessages();
     } catch (_) {
+      uploadStatusError.value = true;
+      uploadStatusMessage.value = 'Upload failed. Please try again.';
       Get.snackbar('Error', 'Failed to upload and send file.');
     } finally {
       isUploading.value = false;
@@ -494,14 +718,12 @@ class PatientController extends GetxController {
 
     try {
       isSubmittingComplaint.value = true;
-      await SupabaseService.client.from('complaints').insert(
-        <String, dynamic>{
-          'patient_id': userId,
-          'doctor_id': doctorId,
-          'title': title,
-          'body': body,
-        },
-      );
+      await SupabaseService.client.from('complaints').insert(<String, dynamic>{
+        'patient_id': userId,
+        'doctor_id': doctorId,
+        'title': title,
+        'body': body,
+      });
       complaintTitleController.clear();
       complaintBodyController.clear();
       Get.snackbar('Sent', 'Complaint sent to admin for review.');

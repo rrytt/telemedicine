@@ -22,13 +22,13 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   role public.app_role not null default 'patient',
-  is_approved boolean not null default false,
+  is_approved boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.profiles
-  add column if not exists is_approved boolean not null default false;
+  add column if not exists is_approved boolean not null default true;
 
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
@@ -57,6 +57,47 @@ create table if not exists public.chat_messages (
     message_text is not null or attachment_path is not null
   )
 );
+
+alter table public.chat_messages
+  add column if not exists delivery_status text not null default 'sent';
+
+alter table public.chat_messages
+  add column if not exists seen_at timestamptz;
+
+alter table public.chat_messages replica identity full;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'chat_messages_delivery_status_check'
+  ) then
+    alter table public.chat_messages
+      add constraint chat_messages_delivery_status_check
+      check (delivery_status in ('sent', 'delivered', 'seen'));
+  end if;
+end
+$$;
+
+do $$
+begin
+  if exists (
+    select 1
+    from pg_publication
+    where pubname = 'supabase_realtime'
+  ) then
+    begin
+      alter publication supabase_realtime add table public.chat_messages;
+    exception
+      when duplicate_object then null;
+      when undefined_table then null;
+    end;
+  else
+    create publication supabase_realtime for table public.chat_messages;
+  end if;
+end
+$$;
 
 create table if not exists public.medical_files (
   id uuid primary key default gen_random_uuid(),
@@ -102,18 +143,22 @@ begin
 end;
 $$;
 
+drop trigger if exists trg_profiles_updated_at on public.profiles;
 create trigger trg_profiles_updated_at
 before update on public.profiles
 for each row execute function public.set_updated_at();
 
+drop trigger if exists trg_appointments_updated_at on public.appointments;
 create trigger trg_appointments_updated_at
 before update on public.appointments
 for each row execute function public.set_updated_at();
 
+drop trigger if exists trg_clinical_notes_updated_at on public.clinical_notes;
 create trigger trg_clinical_notes_updated_at
 before update on public.clinical_notes
 for each row execute function public.set_updated_at();
 
+drop trigger if exists trg_complaints_updated_at on public.complaints;
 create trigger trg_complaints_updated_at
 before update on public.complaints
 for each row execute function public.set_updated_at();
@@ -134,7 +179,7 @@ begin
   on conflict (id) do nothing;
 
   update public.profiles
-  set is_approved = (role = 'admin')
+  set is_approved = true
   where id = new.id;
 
   return new;
@@ -150,6 +195,8 @@ create or replace function public.is_doctor()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -163,6 +210,8 @@ create or replace function public.is_admin()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -181,10 +230,28 @@ alter table public.complaints enable row level security;
 
 -- Profiles policies
 drop policy if exists "profiles_select_self_or_doctor" on public.profiles;
-create policy "profiles_select_self_or_doctor"
+drop policy if exists "profiles_select_self_or_staff_or_doctors" on public.profiles;
+create policy "profiles_select_self_or_staff_or_doctors"
 on public.profiles
 for select
-using (id = auth.uid() or public.is_doctor() or public.is_admin());
+using (
+  id = auth.uid()
+  or public.is_admin()
+  or role = 'doctor'
+  or exists (
+    select 1
+    from public.appointments a
+    where (
+      a.patient_id = auth.uid()
+      and a.doctor_id = profiles.id
+    )
+    or (
+      public.is_doctor()
+      and a.doctor_id = auth.uid()
+      and a.patient_id = profiles.id
+    )
+  )
+);
 
 drop policy if exists "profiles_update_self" on public.profiles;
 create policy "profiles_update_self"
@@ -253,7 +320,29 @@ on public.medical_files
 for insert
 with check (
   uploaded_by = auth.uid()
-  and (patient_id = auth.uid() or doctor_id = auth.uid() or public.is_doctor())
+  and (
+    (
+      patient_id = auth.uid()
+      and exists (
+        select 1
+        from public.appointments a
+        where a.patient_id = medical_files.patient_id
+          and a.doctor_id = medical_files.doctor_id
+          and a.status = 'Accepted'
+      )
+    )
+    or (
+      doctor_id = auth.uid()
+      and public.is_doctor()
+      and exists (
+        select 1
+        from public.appointments a
+        where a.patient_id = medical_files.patient_id
+          and a.doctor_id = medical_files.doctor_id
+          and a.status = 'Accepted'
+      )
+    )
+  )
 );
 
 drop policy if exists "medical_files_admin_manage" on public.medical_files;
@@ -274,14 +363,47 @@ drop policy if exists "clinical_notes_insert_doctor" on public.clinical_notes;
 create policy "clinical_notes_insert_doctor"
 on public.clinical_notes
 for insert
-with check (doctor_id = auth.uid() and public.is_doctor());
+with check (
+  doctor_id = auth.uid()
+  and public.is_doctor()
+  and exists (
+    select 1
+    from public.appointments a
+    where a.id = clinical_notes.appointment_id
+      and a.patient_id = clinical_notes.patient_id
+      and a.doctor_id = clinical_notes.doctor_id
+      and a.status in ('Accepted', 'Completed')
+  )
+);
 
 drop policy if exists "clinical_notes_update_doctor" on public.clinical_notes;
 create policy "clinical_notes_update_doctor"
 on public.clinical_notes
 for update
-using (doctor_id = auth.uid() and public.is_doctor())
-with check (doctor_id = auth.uid() and public.is_doctor());
+using (
+  doctor_id = auth.uid()
+  and public.is_doctor()
+  and exists (
+    select 1
+    from public.appointments a
+    where a.id = clinical_notes.appointment_id
+      and a.patient_id = clinical_notes.patient_id
+      and a.doctor_id = clinical_notes.doctor_id
+      and a.status in ('Accepted', 'Completed')
+  )
+)
+with check (
+  doctor_id = auth.uid()
+  and public.is_doctor()
+  and exists (
+    select 1
+    from public.appointments a
+    where a.id = clinical_notes.appointment_id
+      and a.patient_id = clinical_notes.patient_id
+      and a.doctor_id = clinical_notes.doctor_id
+      and a.status in ('Accepted', 'Completed')
+  )
+);
 
 drop policy if exists "clinical_notes_admin_manage" on public.clinical_notes;
 create policy "clinical_notes_admin_manage"
@@ -316,6 +438,29 @@ with check (
     where a.id = chat_messages.appointment_id
       and a.status = 'Accepted'
       and (a.patient_id = auth.uid() or a.doctor_id = auth.uid())
+  )
+);
+
+drop policy if exists "chat_messages_update_participants" on public.chat_messages;
+create policy "chat_messages_update_participants"
+on public.chat_messages
+for update
+using (
+  exists (
+    select 1
+    from public.appointments a
+    where a.id = chat_messages.appointment_id
+      and a.status = 'Accepted'
+      and (a.patient_id = auth.uid() or a.doctor_id = auth.uid() or public.is_admin())
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.appointments a
+    where a.id = chat_messages.appointment_id
+      and a.status = 'Accepted'
+      and (a.patient_id = auth.uid() or a.doctor_id = auth.uid() or public.is_admin())
   )
 );
 

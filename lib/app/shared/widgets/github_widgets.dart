@@ -4,6 +4,22 @@ import 'package:get/get.dart';
 import '../../theme/github_theme.dart';
 import '../../theme/theme_controller.dart';
 
+class InboxNotificationItem {
+  const InboxNotificationItem({
+    required this.title,
+    required this.description,
+    required this.time,
+    required this.type,
+    this.unread = false,
+  });
+
+  final String title;
+  final String description;
+  final String time;
+  final String type;
+  final bool unread;
+}
+
 class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
   const GithubTopBar({
     super.key,
@@ -16,10 +32,27 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> notifications = <String>[
-      'Medication reminder: 8:00 PM',
-      'New appointment tomorrow 10:30 AM',
-      'Your medical report was updated',
+    final List<InboxNotificationItem> notifications = <InboxNotificationItem>[
+      const InboxNotificationItem(
+        title: 'Medication reminder',
+        description: 'Take Metformin 500mg at 8:00 PM',
+        time: '5m ago',
+        type: 'Reminder',
+        unread: true,
+      ),
+      const InboxNotificationItem(
+        title: 'New appointment request',
+        description: 'Tomorrow at 10:30 AM with Dr. Sarah',
+        time: '24m ago',
+        type: 'Appointment',
+        unread: true,
+      ),
+      const InboxNotificationItem(
+        title: 'Lab report uploaded',
+        description: 'CBC results are available for review',
+        time: '1h ago',
+        type: 'Report',
+      ),
     ];
     final ThemeController themeController = Get.find<ThemeController>();
     final bool isDark = themeController.themeMode.value == ThemeMode.dark;
@@ -29,7 +62,13 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
         children: <Widget>[
           const Icon(Icons.local_hospital_outlined, size: 20),
           const SizedBox(width: 8),
-          Text(title),
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       actions: <Widget>[
@@ -44,17 +83,87 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
             icon: const Icon(Icons.logout, size: 18),
             label: const Text('Logout'),
           ),
-        PopupMenuButton<String>(
+        PopupMenuButton<InboxNotificationItem>(
           icon: const Icon(Icons.notifications_none_rounded),
+          constraints: const BoxConstraints(minWidth: 360, maxWidth: 360),
           itemBuilder: (BuildContext context) {
-            return notifications
-                .map(
-                  (String item) => PopupMenuItem<String>(
-                    enabled: false,
-                    child: SizedBox(width: 280, child: Text(item)),
+            return <PopupMenuEntry<InboxNotificationItem>>[
+              const PopupMenuItem<InboxNotificationItem>(
+                enabled: false,
+                padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.inbox_outlined, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Notifications Inbox',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(height: 1),
+              ...notifications.map(
+                (InboxNotificationItem item) => PopupMenuItem<InboxNotificationItem>(
+                  enabled: false,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Icon(
+                        item.type == 'Reminder'
+                            ? Icons.alarm_outlined
+                            : item.type == 'Appointment'
+                                ? Icons.event_outlined
+                                : Icons.description_outlined,
+                        size: 16,
+                        color: GithubTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(
+                                    item.title,
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                                if (item.unread)
+                                  const GithubBadge(
+                                    text: 'New',
+                                    textColor: Color(0xFF0969DA),
+                                    bgColor: Color(0xFFDDF4FF),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.description,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: GithubTheme.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.time,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: GithubTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                )
-                .toList();
+                ),
+              ),
+            ];
           },
         ),
         const SizedBox(width: 6),
