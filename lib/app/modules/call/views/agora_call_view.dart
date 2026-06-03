@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../../core/agora/agora_service.dart';
 import '../../../core/agora/agora_token_service.dart';
+import '../../../theme/github_theme.dart';
 
 class AgoraCallView extends StatefulWidget {
   const AgoraCallView({super.key});
@@ -35,11 +36,10 @@ class _AgoraCallViewState extends State<AgoraCallView> {
 
     _appId = (args['appId'] as String?)?.trim().isNotEmpty == true
         ? (args['appId'] as String).trim()
-      : AgoraService.appId;
+        : AgoraService.appId;
 
-    _channelName =
-        (args['channelName'] as String?)?.trim().isNotEmpty == true
-            ? (args['channelName'] as String).trim()
+    _channelName = (args['channelName'] as String?)?.trim().isNotEmpty == true
+        ? (args['channelName'] as String).trim()
         : AgoraService.defaultChannel;
 
     _appointmentId = (args['appointmentId'] as String?)?.trim() ?? '';
@@ -61,10 +61,11 @@ class _AgoraCallViewState extends State<AgoraCallView> {
           throw StateError('Appointment ID is required to fetch Agora token.');
         }
 
-        final AgoraTokenResponse tokenResponse = await AgoraTokenService.fetchRtcToken(
-          appointmentId: _appointmentId,
-          channelName: _channelName,
-        );
+        final AgoraTokenResponse tokenResponse =
+            await AgoraTokenService.fetchRtcToken(
+              appointmentId: _appointmentId,
+              channelName: _channelName,
+            );
         _appId = tokenResponse.appId;
         _channelName = tokenResponse.channelName;
         _token = tokenResponse.token;
@@ -95,27 +96,29 @@ class _AgoraCallViewState extends State<AgoraCallView> {
               _remoteUid = remoteUid;
             });
           },
-          onUserOffline: (
-            RtcConnection connection,
-            int remoteUid,
-            UserOfflineReasonType reason,
-          ) {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              if (_remoteUid == remoteUid) {
-                _remoteUid = null;
-              }
-            });
-          },
+          onUserOffline:
+              (
+                RtcConnection connection,
+                int remoteUid,
+                UserOfflineReasonType reason,
+              ) {
+                if (!mounted) {
+                  return;
+                }
+                setState(() {
+                  if (_remoteUid == remoteUid) {
+                    _remoteUid = null;
+                  }
+                });
+              },
           onError: (ErrorCodeType err, String msg) {
             if (!mounted) {
               return;
             }
             setState(() {
               _isInitFailed = true;
-              _errorText = 'Agora error: ${err.name} ${msg.isNotEmpty ? '- $msg' : ''}';
+              _errorText =
+                  'Agora error: ${err.name} ${msg.isNotEmpty ? '- $msg' : ''}';
             });
           },
         ),
@@ -147,7 +150,8 @@ class _AgoraCallViewState extends State<AgoraCallView> {
 
   Future<bool> _requestPermissions() async {
     final ph.PermissionStatus camera = await ph.Permission.camera.request();
-    final ph.PermissionStatus microphone = await ph.Permission.microphone.request();
+    final ph.PermissionStatus microphone = await ph.Permission.microphone
+        .request();
     return camera.isGranted && microphone.isGranted;
   }
 
@@ -205,12 +209,14 @@ class _AgoraCallViewState extends State<AgoraCallView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GithubTheme.bg,
       appBar: AppBar(
         title: Text('Video Call: $_channelName'),
+        backgroundColor: GithubTheme.surface,
+        foregroundColor: GithubTheme.textPrimary,
+        elevation: 0,
       ),
-      body: SafeArea(
-        child: _buildBody(),
-      ),
+      body: SafeArea(child: _buildBody()),
     );
   }
 
@@ -235,9 +241,7 @@ class _AgoraCallViewState extends State<AgoraCallView> {
     }
 
     if (!_isInitialized) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Stack(
@@ -269,16 +273,24 @@ class _AgoraCallViewState extends State<AgoraCallView> {
             children: <Widget>[
               FilledButton.tonalIcon(
                 onPressed: _toggleMute,
-                icon: Icon(_muted ? Icons.mic_off_outlined : Icons.mic_none_outlined),
+                icon: Icon(
+                  _muted ? Icons.mic_off_outlined : Icons.mic_none_outlined,
+                ),
                 label: Text(_muted ? 'Unmute' : 'Mute'),
               ),
               FilledButton.tonalIcon(
                 onPressed: _toggleCamera,
-                icon: Icon(_cameraOff ? Icons.videocam_off_outlined : Icons.videocam_outlined),
+                icon: Icon(
+                  _cameraOff
+                      ? Icons.videocam_off_outlined
+                      : Icons.videocam_outlined,
+                ),
                 label: Text(_cameraOff ? 'Camera On' : 'Camera Off'),
               ),
               FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xFFCF222E)),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFCF222E),
+                ),
                 onPressed: _endCall,
                 icon: const Icon(Icons.call_end_outlined),
                 label: const Text('End'),
@@ -339,10 +351,7 @@ class _AgoraCallViewState extends State<AgoraCallView> {
           children: <Widget>[
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

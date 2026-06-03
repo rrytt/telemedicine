@@ -44,6 +44,14 @@ declare module 'npm:agora-token@2.0.5' {
       role: number,
       privilegeExpiredTs: number,
     ): string
+    buildTokenWithUid(
+      appId: string,
+      appCertificate: string,
+      channelName: string,
+      uid: number,
+      role: number,
+      privilegeExpiredTs: number,
+    ): string
   }
 
   export const Role: {

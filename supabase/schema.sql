@@ -22,26 +22,31 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   role public.app_role not null default 'patient',
-  is_approved boolean not null default true,
+  is_approved boolean not null default false,
+  avatar_url text,
+  phone_number text,
+  specialty text,
+  bio text,
+  consultation_fee numeric,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table public.profiles
-  add column if not exists is_approved boolean not null default true;
+  add column if not exists is_approved boolean not null default false;
 
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references public.profiles(id) on delete cascade,
   doctor_id uuid not null references public.profiles(id) on delete cascade,
   scheduled_at timestamptz not null,
-  status text not null default 'Pending',
+  status text not null default 'pending',
   is_urgent boolean not null default false,
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint appointments_status_check
-    check (status in ('Pending', 'Accepted', 'Rejected', 'Completed'))
+    check (status in ('pending', 'accepted', 'rejected', 'completed'))
 );
 
 create table if not exists public.chat_messages (
@@ -80,24 +85,38 @@ begin
 end
 $$;
 
-do $$
-begin
-  if exists (
-    select 1
-    from pg_publication
-    where pubname = 'supabase_realtime'
-  ) then
-    begin
-      alter publication supabase_realtime add table public.chat_messages;
-    exception
-      when duplicate_object then null;
-      when undefined_table then null;
-    end;
-  else
-    create publication supabase_realtime for table public.chat_messages;
-  end if;
-end
-$$;
+-- تفعيل التحديث اللحظي بأمان (Fix for Error 42710)
+DO $$ 
+BEGIN
+    -- التأكد من وجود الـ Publication
+    IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+        CREATE PUBLICATION supabase_realtime;
+    END IF;
+
+    -- إضافة جدول المواعيد للـ Realtime
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'appointments'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
+    END IF;
+
+    -- إضافة جدول الرسائل للـ Realtime
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'chat_messages'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
+    END IF;
+
+    -- إضافة جدول البروفايل للـ Realtime لمتابعة حالة التفعيل فور حدوثها
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'profiles'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+    END IF;
+END $$;
 
 create table if not exists public.medical_files (
   id uuid primary key default gen_random_uuid(),
@@ -170,17 +189,20 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, role, full_name)
+  insert into public.profiles (id, role, full_name, is_approved, specialty, phone_number)
   values (
     new.id,
-    coalesce((new.raw_user_meta_data ->> 'role')::public.app_role, 'patient'::public.app_role),
-    coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1))
+    coalesce(lower(new.raw_user_meta_data ->> 'role')::public.app_role, 'patient'::public.app_role),
+    coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+    -- تفعيل المرضى تلقائياً ليتمكنوا من الدخول فوراً، بينما يحتاج الأطباء لموافقة الإدمن
+    case 
+      when lower(coalesce(new.raw_user_meta_data ->> 'role', 'patient')) = 'doctor' then false 
+      else true 
+    end,
+    new.raw_user_meta_data ->> 'specialty',
+    new.raw_user_meta_data ->> 'phone_number'
   )
   on conflict (id) do nothing;
-
-  update public.profiles
-  set is_approved = true
-  where id = new.id;
 
   return new;
 end;
@@ -237,7 +259,7 @@ for select
 using (
   id = auth.uid()
   or public.is_admin()
-  or role = 'doctor'
+  or (role = 'doctor' and is_approved = true)
   or exists (
     select 1
     from public.appointments a
@@ -525,3 +547,90 @@ with check (
   bucket_id = 'medical-files'
   and split_part(name, '/', 1) = auth.uid()::text
 );
+-- Doctor Settings table
+create table if not exists public.doctor_settings (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade unique,
+  appointment_requests_notification boolean not null default true,
+  new_messages_notification boolean not null default true,
+  video_call_requests_notification boolean not null default true,
+  doctor_name text not null default 'Dr. John Doe',
+  specialization text not null default 'General Medicine',
+  license_number text not null default 'MD123456',
+  experience text not null default '10 years',
+  working_hours text not null default 'Mon-Fri: 9:00 AM - 5:00 PM',
+  two_factor_enabled boolean not null default false,
+  profile_visibility boolean not null default true,
+  show_online_status boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Feedback table
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  user_type text not null default 'patient',
+  feedback text not null,
+  status text not null default 'pending',
+  admin_response text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint feedback_user_type_check check (user_type in ('patient', 'doctor', 'admin')),
+  constraint feedback_status_check check (status in ('pending', 'reviewed', 'responded'))
+);
+
+-- Enable RLS on new tables
+alter table public.doctor_settings enable row level security;
+alter table public.feedback enable row level security;
+
+-- Doctor Settings policies
+drop policy if exists "doctor_settings_select_own" on public.doctor_settings;
+create policy "doctor_settings_select_own"
+on public.doctor_settings
+for select
+using (user_id = auth.uid());
+
+drop policy if exists "doctor_settings_insert_own" on public.doctor_settings;
+create policy "doctor_settings_insert_own"
+on public.doctor_settings
+for insert
+with check (user_id = auth.uid());
+
+drop policy if exists "doctor_settings_update_own" on public.doctor_settings;
+create policy "doctor_settings_update_own"
+on public.doctor_settings
+for update
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+-- Feedback policies
+drop policy if exists "feedback_insert_own" on public.feedback;
+create policy "feedback_insert_own"
+on public.feedback
+for insert
+with check (user_id = auth.uid() or user_id is null);
+
+drop policy if exists "feedback_select_own" on public.feedback;
+create policy "feedback_select_own"
+on public.feedback
+for select
+using (user_id = auth.uid());
+
+drop policy if exists "feedback_admin_manage" on public.feedback;
+create policy "feedback_admin_manage"
+on public.feedback
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- Add updated_at triggers
+drop trigger if exists trg_doctor_settings_updated_at on public.doctor_settings;
+create trigger trg_doctor_settings_updated_at
+before update on public.doctor_settings
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_feedback_updated_at on public.feedback;
+create trigger trg_feedback_updated_at
+before update on public.feedback
+for each row execute function public.set_updated_at();

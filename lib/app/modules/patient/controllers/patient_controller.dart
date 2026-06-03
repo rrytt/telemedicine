@@ -185,15 +185,36 @@ class PatientController extends GetxController {
     if (query.isEmpty) {
       filteredDoctors.assignAll(doctors);
     } else {
-      filteredDoctors.assignAll(doctors.where((DoctorOption d) =>
-          d.name.toLowerCase().contains(query.toLowerCase()) ||
-          (d.specialty?.toLowerCase().contains(query.toLowerCase()) ?? false)));
+      filteredDoctors.assignAll(
+        doctors.where(
+          (DoctorOption d) =>
+              d.name.toLowerCase().contains(query.toLowerCase()) ||
+              (d.specialty?.toLowerCase().contains(query.toLowerCase()) ??
+                  false),
+        ),
+      );
     }
   }
 
-  void sendConsultationRequest(String doctorId) {
-    // TODO: Implement sending consultation request
-    Get.snackbar('Request Sent', 'Consultation request sent to doctor');
+  void sendConsultationRequest(String doctorId) async {
+    try {
+      final user = SupabaseService.client.auth.currentUser;
+      if (user == null) {
+        Get.snackbar('Error', 'User not authenticated');
+        return;
+      }
+
+      await SupabaseService.client.from('appointments').insert({
+        'patient_id': user.id,
+        'doctor_id': doctorId,
+        'scheduled_at': DateTime.now().toIso8601String(),
+        'status': 'Pending',
+      });
+
+      Get.snackbar('Request Sent', 'Consultation request sent to doctor');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send request: $e');
+    }
   }
 
   void _setupRealtimeMessages() {
@@ -399,9 +420,11 @@ class PatientController extends GetxController {
     return '${dateTime.year}-$mm-$dd $hh:$min';
   }
 
-  void selectChatAppointment(String? appointmentId) {
-    selectedChatAppointmentId.value = appointmentId;
-    loadMessages();
+  void stopRealtimeMessages() {
+    if (_messagesChannel != null) {
+      SupabaseService.client.removeChannel(_messagesChannel!);
+      _messagesChannel = null;
+    }
   }
 
   void openVideoCall(PatientAppointment appointment, {String? token}) {
@@ -536,6 +559,15 @@ class PatientController extends GetxController {
     }
   }
 
+  void selectChatAppointment(String appointmentId) {
+    if (selectedChatAppointmentId.value == appointmentId) {
+      return; // Already selected, no need to reload
+    }
+    selectedChatAppointmentId.value = appointmentId;
+    loadMessages();
+    _setupRealtimeMessages(); // Ensure real-time listening is active for the new appointment
+  }
+
   Future<void> _insertChatMessage(Map<String, dynamic> payload) async {
     final Map<String, dynamic> withStatus = <String, dynamic>{
       ...payload,
@@ -598,6 +630,88 @@ class PatientController extends GetxController {
       unreadCountsByAppointment.assignAll(counts);
     } catch (_) {
       // Keep existing counters on transient query failures.
+    }
+  }
+
+  Future<void> deleteAppointment(String appointmentId) async {
+    if (appointmentId.isEmpty) {
+      Get.snackbar('Error', 'Appointment identifier is missing.');
+      return;
+    }
+
+    if (!SupabaseService.isConfigured) {
+      Get.snackbar('Error', 'Supabase is not configured.');
+      return;
+    }
+
+    final String? userId = _currentUserId;
+    if (userId == null) {
+      Get.snackbar('Error', 'User session is missing.');
+      return;
+    }
+
+    final String pathPrefix = '$userId/$appointmentId';
+
+    try {
+      isLoadingAppointments.value = true;
+
+      // Delete any uploaded files stored for this appointment
+      try {
+        final List<dynamic> storedFiles = await SupabaseService.client.storage
+            .from('medical-files')
+            .list(path: pathPrefix);
+        if (storedFiles.isNotEmpty) {
+          final List<String> removePaths = storedFiles
+              .map((dynamic item) => item['name']?.toString())
+              .whereType<String>()
+              .map((String name) => '$pathPrefix/$name')
+              .toList();
+          if (removePaths.isNotEmpty) {
+            await SupabaseService.client.storage
+                .from('medical-files')
+                .remove(removePaths);
+          }
+        }
+      } catch (_) {
+        // Ignore storage cleanup errors and continue to remove the appointment.
+      }
+
+      // Also clean any medical_files rows saved with this appointment path
+      try {
+        await SupabaseService.client
+            .from('medical_files')
+            .delete()
+            .like('file_path', '$pathPrefix/%');
+      } catch (_) {
+        // Continue even if the supplemental table cleanup fails.
+      }
+
+      await SupabaseService.client
+          .from('chat_messages')
+          .delete()
+          .eq('appointment_id', appointmentId)
+          .eq('patient_id', userId);
+
+      await SupabaseService.client
+          .from('appointments')
+          .delete()
+          .eq('id', appointmentId)
+          .eq('patient_id', userId);
+
+      if (selectedChatAppointmentId.value == appointmentId) {
+        selectedChatAppointmentId.value = null;
+        messages.clear();
+      }
+
+      Get.snackbar('Deleted', 'Appointment and related files were removed.');
+      await loadAppointments();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete appointment: ${_friendlyError(e)}',
+      );
+    } finally {
+      isLoadingAppointments.value = false;
     }
   }
 
@@ -714,6 +828,20 @@ class PatientController extends GetxController {
     } finally {
       isUploading.value = false;
       uploadProgress.value = 0;
+    }
+  }
+
+  void openImage(ChatMessageItem message) {
+    final String? type = message.attachmentType?.toLowerCase();
+    if (message.attachmentPath != null &&
+        (type == 'jpg' || type == 'jpeg' || type == 'png' || type == 'webp')) {
+      Get.toNamed(
+        AppRoutes.imageViewer,
+        arguments: {
+          'path': message.attachmentPath,
+          'name': message.attachmentName ?? 'image.jpg',
+        },
+      );
     }
   }
 

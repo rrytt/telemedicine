@@ -10,8 +10,11 @@ class SupabaseService {
 
   static bool _isInitialized = false;
   static bool _isConfigured = false;
+  static String _url = _defaultUrl;
 
   static bool get isConfigured => _isConfigured;
+  static String get anonKey => _defaultAnonKey;
+  static String get supabaseUrl => _url;
 
   static Future<void> initialize() async {
     if (_isInitialized) {
@@ -20,16 +23,16 @@ class SupabaseService {
 
     const String envUrl = String.fromEnvironment('SUPABASE_URL');
     const String envAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-    final String url = envUrl.isEmpty ? _defaultUrl : envUrl;
+    _url = envUrl.isEmpty ? _defaultUrl : envUrl;
     final String anonKey = envAnonKey.isEmpty ? _defaultAnonKey : envAnonKey;
 
-    if (url.isEmpty || anonKey.isEmpty) {
+    if (_url.isEmpty || anonKey.isEmpty) {
       _isInitialized = true;
       _isConfigured = false;
       return;
     }
 
-    await Supabase.initialize(url: url, anonKey: anonKey);
+    await Supabase.initialize(url: _url, anonKey: anonKey);
     _isInitialized = true;
     _isConfigured = true;
   }

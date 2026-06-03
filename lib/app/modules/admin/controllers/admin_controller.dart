@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/supabase/supabase_service.dart';
 
@@ -76,6 +77,15 @@ class AdminController extends GetxController {
 
     return '$fallback $message';
   }
+
+  List<AdminAccountItem> get patientAccounts =>
+      accounts.where((AdminAccountItem account) => account.role == 'patient').toList();
+
+  List<AdminAccountItem> get doctorAccounts =>
+      accounts.where((AdminAccountItem account) => account.role == 'doctor').toList();
+
+  List<AdminAccountItem> get adminAccounts =>
+      accounts.where((AdminAccountItem account) => account.role == 'admin').toList();
 
   Future<void> loadAccounts() async {
     accountsError.value = '';
@@ -166,6 +176,58 @@ class AdminController extends GetxController {
       Get.snackbar('Updated', 'Account name updated.');
     } catch (_) {
       Get.snackbar('Error', 'Failed to update account name.');
+    }
+  }
+
+  Future<void> createDoctorAccount({
+    required String email,
+    required String password,
+    required String fullName,
+  }) async {
+    final String trimmedEmail = email.trim();
+    final String trimmedName = fullName.trim();
+
+    if (trimmedEmail.isEmpty || password.isEmpty || trimmedName.isEmpty) {
+      Get.snackbar('Validation', 'Email, full name, and password are required.');
+      return;
+    }
+
+    if (!SupabaseService.isConfigured) {
+      Get.snackbar('Configuration', 'Supabase is not configured.');
+      return;
+    }
+
+    try {
+      isLoadingAccounts.value = true;
+      final AuthResponse response = await SupabaseService.client.auth.signUp(
+        email: trimmedEmail,
+        password: password,
+        data: <String, dynamic>{'role': 'doctor'},
+      );
+
+      final User? user = response.user;
+      if (user != null) {
+        await SupabaseService.client.from('profiles').upsert(<String, dynamic>{
+          'id': user.id,
+          'role': 'doctor',
+          'full_name': trimmedName,
+          'is_approved': true,
+        }, onConflict: 'id');
+      }
+
+      await loadAccounts();
+      Get.snackbar(
+        'Doctor Registered',
+        user != null
+            ? 'Doctor account created successfully.'
+            : 'Doctor account created. Confirm email if required.',
+      );
+    } on AuthException catch (e) {
+      Get.snackbar('Error', e.message);
+    } catch (_) {
+      Get.snackbar('Error', 'Failed to create doctor account.');
+    } finally {
+      isLoadingAccounts.value = false;
     }
   }
 

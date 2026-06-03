@@ -16,6 +16,9 @@ class AuthController extends GetxController {
   final Rxn<AccountType> selectedAccountType = Rxn<AccountType>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController bioController = TextEditingController();
 
   final RxBool isLoading = false.obs;
   final RxBool isSignUpMode = false.obs;
@@ -67,18 +70,31 @@ class AuthController extends GetxController {
   }
 
   void openLoginFor(AccountType type) {
-    select(type);
     errorMessage.value = '';
     isSignUpMode.value = false;
+
+    if (type == AccountType.admin) {
+      select(type);
+      Get.toNamed(AppRoutes.adminLogin);
+      return;
+    }
+
+    // Normal sign in and sign up flow for patients and doctors uses the same login page.
+    select(type);
     Get.toNamed(AppRoutes.login);
   }
 
   void toggleMode(bool signUp) {
-    if (signUp && isAdminSelected) {
+    if (signUp && currentAccountType != AccountType.patient) {
       errorMessage.value =
-          'Admin accounts are created manually by system owner.';
+          'Only patient accounts can be created here. Doctor accounts are provisioned by the admin.';
       return;
     }
+
+    if (signUp) {
+      select(AccountType.patient);
+    }
+
     isSignUpMode.value = signUp;
     errorMessage.value = '';
   }
@@ -113,9 +129,22 @@ class AuthController extends GetxController {
 
     final String email = emailController.text.trim();
     final String password = passwordController.text;
+    final String fullName = fullNameController.text.trim();
+    final String phone = phoneController.text.trim();
+    final String bio = bioController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       errorMessage.value = 'Email and password are required.';
+      return;
+    }
+
+    if (isSignUpMode.value && fullName.isEmpty) {
+      errorMessage.value = 'Full name is required for registration.';
+      return;
+    }
+
+    if (isSignUpMode.value && phone.isEmpty) {
+      errorMessage.value = 'Phone number is required for registration.';
       return;
     }
 
@@ -135,16 +164,16 @@ class AuthController extends GetxController {
 
       User? user;
       if (isSignUpMode.value) {
-        if (isAdminSelected) {
+        if (currentAccountType != AccountType.patient) {
           errorMessage.value =
-              'Admin account is special and must be created by system owner.';
+              'Only patient accounts can be created here. Doctor and admin accounts are provisioned by the admin.';
           return;
         }
 
         final AuthResponse response = await SupabaseService.client.auth.signUp(
           email: email,
           password: password,
-          data: <String, dynamic>{'role': currentAccountType.name},
+          data: <String, dynamic>{'role': AccountType.patient.name},
         );
         user = response.user;
 
@@ -152,7 +181,9 @@ class AuthController extends GetxController {
           await _upsertProfile(
             userId: user.id,
             role: currentAccountType.name,
-            fullName: email.split('@').first,
+            fullName: fullName.isNotEmpty ? fullName : email.split('@').first,
+            phoneNumber: phone,
+            bio: bio.isNotEmpty ? bio : null,
           );
         }
 
@@ -178,11 +209,13 @@ class AuthController extends GetxController {
         return;
       }
 
-      if (role != currentAccountType.name) {
-        await SupabaseService.client.auth.signOut();
-        errorMessage.value =
-            'Selected role does not match this account. Please choose the correct role.';
-        return;
+      if (isSignUpMode.value) {
+        if (role != AccountType.patient.name) {
+          await SupabaseService.client.auth.signOut();
+          errorMessage.value =
+              'Patient registration only. Please use the correct account type or contact your administrator.';
+          return;
+        }
       }
 
       await _saveRememberedAuthState();
@@ -242,11 +275,15 @@ class AuthController extends GetxController {
     required String userId,
     required String role,
     String? fullName,
+    String? phoneNumber,
+    String? bio,
   }) async {
     await SupabaseService.client.from('profiles').upsert(<String, dynamic>{
       'id': userId,
       'role': role,
       'full_name': fullName,
+      'phone_number': phoneNumber,
+      'bio': bio,
       'is_approved': true,
     }, onConflict: 'id');
   }
@@ -365,8 +402,14 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     if (isSupabaseConfigured) {
-      await SupabaseService.client.auth.signOut();
+      try {
+        await SupabaseService.client.auth.signOut();
+      } catch (error) {
+        // Ignore logout network failures and continue clearing local state.
+        debugPrint('Logout error: $error');
+      }
     }
+
     if (!rememberMe.value) {
       emailController.clear();
     }
@@ -379,6 +422,9 @@ class AuthController extends GetxController {
     passwordController.removeListener(_handlePasswordChanged);
     emailController.dispose();
     passwordController.dispose();
+    fullNameController.dispose();
+    phoneController.dispose();
+    bioController.dispose();
     super.onClose();
   }
 }

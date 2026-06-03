@@ -6,13 +6,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SupabaseService.initialize();
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    
 
-  final ThemeController themeController = ThemeController();
-  await themeController.initialize();
-  Get.put<ThemeController>(themeController, permanent: true);
-  Get.put<AuthController>(AuthController(), permanent: true);
+    
+    // Initialize Supabase
+    await SupabaseService.initialize();
 
-  runApp(const TelemedicineApp());
+    // Initialize Theme
+    final ThemeController themeController = ThemeController();
+    await themeController.initialize();
+    Get.put<ThemeController>(themeController, permanent: true);
+
+    // Initialize Auth
+    Get.put<AuthController>(AuthController(), permanent: true);
+
+    runApp(const TelemedicineApp());
+  } catch (e) {
+    debugPrint('Initialization error: $e');
+    // You could run a simple ErrorApp here if initialization fails critically
+  }
 }

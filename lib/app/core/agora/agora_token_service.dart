@@ -38,6 +38,13 @@ class AgoraTokenService {
     String role = 'publisher',
     int expiresInSeconds = 3600,
   }) async {
+    final String? accessToken = SupabaseService.client.auth.currentSession?.accessToken;
+    final Map<String, String> headers = <String, String>{};
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $accessToken';
+    }
+
     final response = await SupabaseService.client.functions.invoke(
       'agora-token',
       body: <String, dynamic>{
@@ -46,6 +53,7 @@ class AgoraTokenService {
         'role': role,
         'expiresInSeconds': expiresInSeconds,
       },
+      headers: headers.isNotEmpty ? headers : null,
     );
 
     final dynamic data = response.data;

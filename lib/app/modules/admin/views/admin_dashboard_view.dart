@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../auth/controllers/auth_controller.dart';
+import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/github_widgets.dart';
 import '../../../theme/github_theme.dart';
 import '../controllers/admin_controller.dart';
@@ -15,386 +16,172 @@ class AdminDashboardView extends StatelessWidget {
     final AuthController authController = Get.find<AuthController>();
 
     return Scaffold(
+      backgroundColor: GithubTheme.bg,
       appBar: GithubTopBar(
         title: 'Admin Portal',
         onLogout: authController.logout,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final bool compact = constraints.maxWidth < 1100;
-            if (compact) {
-              return ListView(
-                children: <Widget>[
-                  _accountsCard(context, controller),
-                  const SizedBox(height: 12),
-                  _complaintsCard(context, controller),
-                ],
-              );
-            }
-
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(child: _accountsCard(context, controller)),
-                const SizedBox(width: 12),
-                Expanded(child: _complaintsCard(context, controller)),
-              ],
-            );
-          },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const GithubSectionHeader(
+              title: 'Admin Overview',
+              subtitle:
+                  'Quickly access account management and complaint review.',
+            ),
+            const SizedBox(height: 16),
+            Expanded(child: Obx(() => _buildDashboardContent(controller))),
+          ],
         ),
       ),
     );
   }
 
-  Widget _accountsCard(BuildContext context, AdminController controller) {
+  Widget _buildSummaryCard({
+    required String title,
+    required String subtitle,
+    required List<Widget> details,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
     return Card(
-      child: Column(
-        children: <Widget>[
-          const GithubSectionHeader(
-            title: 'Accounts Management',
-            subtitle: 'Approve, edit, delete, and manage user accounts',
-          ),
-          Obx(() {
-            if (controller.isLoadingAccounts.value) {
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            if (controller.accountsError.value.isNotEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  controller.accountsError.value,
-                  style: const TextStyle(color: Color(0xFFCF222E)),
-                ),
-              );
-            }
-
-            return Column(
-              children: controller.accounts.map((AdminAccountItem account) {
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: GithubTheme.border),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              account.fullName,
-                              style: const TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                          GithubBadge(
-                            text: account.isApproved ? 'Approved' : 'Pending',
-                            textColor: account.isApproved
-                                ? const Color(0xFF1A7F37)
-                                : const Color(0xFF9A6700),
-                            bgColor: account.isApproved
-                                ? const Color(0xFFDAFBE1)
-                                : const Color(0xFFFFF8C5),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        account.id,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: GithubTheme.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: <Widget>[
-                          SizedBox(
-                            width: 130,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: account.role,
-                              decoration: InputDecoration(
-                                contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              items: const <DropdownMenuItem<String>>[
-                                DropdownMenuItem<String>(
-                                  value: 'patient',
-                                  child: Text('patient'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'doctor',
-                                  child: Text('doctor'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'admin',
-                                  child: Text('admin'),
-                                ),
-                              ],
-                              onChanged: (String? value) {
-                                if (value != null && value != account.role) {
-                                  controller.updateAccountRole(account.id, value);
-                                }
-                              },
-                            ),
-                          ),
-                          FilledButton(
-                            onPressed: () => controller.approveAccount(
-                              account.id,
-                              !account.isApproved,
-                            ),
-                            child: Text(
-                              account.isApproved ? 'Unapprove' : 'Approve',
-                            ),
-                          ),
-                          OutlinedButton(
-                            onPressed: () => _showEditNameDialog(
-                              context,
-                              controller,
-                              account.id,
-                              account.fullName,
-                            ),
-                            child: const Text('Edit Name'),
-                          ),
-                          OutlinedButton(
-                            onPressed: () => controller.deleteAccount(account.id),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            );
-          }),
-        ],
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: const TextStyle(color: GithubTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            ...details,
+            const SizedBox(height: 16),
+            FilledButton(onPressed: onAction, child: Text(actionLabel)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _complaintsCard(BuildContext context, AdminController controller) {
-    return Card(
-      child: Column(
-        children: <Widget>[
-          const GithubSectionHeader(
-            title: 'Complaints Review',
-            subtitle: 'Review complaints and publish admin responses',
-          ),
-          Obx(() {
-            if (controller.isLoadingComplaints.value) {
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: CircularProgressIndicator(),
-              );
-            }
+  Widget _accountsSummaryCard(AdminController controller) {
+    final int totalAccounts = controller.accounts.length;
+    final int totalPatients = controller.patientAccounts.length;
+    final int totalDoctors = controller.doctorAccounts.length;
+    final int totalAdmins = controller.adminAccounts.length;
+    final int pendingApprovals = controller.accounts
+        .where((AdminAccountItem account) => !account.isApproved)
+        .length;
 
-            if (controller.complaintsError.value.isNotEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  controller.complaintsError.value,
-                  style: const TextStyle(color: Color(0xFFCF222E)),
+    return _buildSummaryCard(
+      title: 'Accounts Management',
+      subtitle: 'Review user roles, approvals, and doctor onboarding.',
+      details: <Widget>[
+        Text('Total accounts: $totalAccounts'),
+        Text('Patients: $totalPatients'),
+        Text('Doctors: $totalDoctors'),
+        Text('Admins: $totalAdmins'),
+        Text('Pending approvals: $pendingApprovals'),
+      ],
+      actionLabel: 'Open Accounts',
+      onAction: () => Get.toNamed(AppRoutes.adminAccounts),
+    );
+  }
+
+  Widget _complaintsSummaryCard(AdminController controller) {
+    final int totalComplaints = controller.complaints.length;
+    final int openCount = controller.complaints
+        .where((AdminComplaintItem complaint) => complaint.status == 'open')
+        .length;
+    final int inReviewCount = controller.complaints
+        .where(
+          (AdminComplaintItem complaint) => complaint.status == 'in_review',
+        )
+        .length;
+
+    return _buildSummaryCard(
+      title: 'Complaints Review',
+      subtitle: 'Monitor patient issues and manage responses from one place.',
+      details: <Widget>[
+        Text('Total complaints: $totalComplaints'),
+        Text('Open: $openCount'),
+        Text('In review: $inReviewCount'),
+      ],
+      actionLabel: 'Open Complaints',
+      onAction: () => Get.toNamed(AppRoutes.adminComplaints),
+    );
+  }
+
+  Widget _buildDashboardContent(AdminController controller) {
+    if (controller.isLoadingAccounts.value ||
+        controller.isLoadingComplaints.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (controller.accountsError.value.isNotEmpty ||
+        controller.complaintsError.value.isNotEmpty) {
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (controller.accountsError.value.isNotEmpty)
+              Card(
+                color: GithubTheme.warningSurface,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    controller.accountsError.value,
+                    style: const TextStyle(color: GithubTheme.warning),
+                  ),
                 ),
-              );
-            }
-
-            return Column(
-              children: controller.complaints.map((AdminComplaintItem complaint) {
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: GithubTheme.border),
-                    ),
+              ),
+            if (controller.complaintsError.value.isNotEmpty)
+              Card(
+                color: GithubTheme.warningSurface,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    controller.complaintsError.value,
+                    style: const TextStyle(color: GithubTheme.warning),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              complaint.title,
-                              style: const TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                          GithubBadge(
-                            text: complaint.status,
-                            textColor: const Color(0xFF0969DA),
-                            bgColor: const Color(0xFFDDF4FF),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Patient: ${complaint.patientName} | Doctor: ${complaint.doctorName ?? '-'}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: GithubTheme.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(complaint.body),
-                      if ((complaint.adminResponse ?? '').isNotEmpty) ...<Widget>[
-                        const SizedBox(height: 8),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF6F8FA),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: GithubTheme.border),
-                          ),
-                          child: Text('Admin response: ${complaint.adminResponse}'),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: <Widget>[
-                          SizedBox(
-                            width: 150,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: complaint.status,
-                              decoration: InputDecoration(
-                                contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              items: const <DropdownMenuItem<String>>[
-                                DropdownMenuItem<String>(
-                                  value: 'open',
-                                  child: Text('open'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'in_review',
-                                  child: Text('in_review'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'resolved',
-                                  child: Text('resolved'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'rejected',
-                                  child: Text('rejected'),
-                                ),
-                              ],
-                              onChanged: (String? value) {
-                                if (value != null && value != complaint.status) {
-                                  controller.updateComplaintStatus(complaint.id, value);
-                                }
-                              },
-                            ),
-                          ),
-                          OutlinedButton(
-                            onPressed: () => _showRespondDialog(
-                              context,
-                              controller,
-                              complaint.id,
-                            ),
-                            child: const Text('Respond'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            );
-          }),
-        ],
-      ),
-    );
-  }
+                ),
+              ),
+          ],
+        ),
+      );
+    }
 
-  Future<void> _showEditNameDialog(
-    BuildContext context,
-    AdminController controller,
-    String accountId,
-    String currentName,
-  ) async {
-    final TextEditingController textController =
-        TextEditingController(text: currentName);
-
-    final bool? save = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Edit Account Name'),
-          content: TextField(
-            controller: textController,
-            decoration: const InputDecoration(labelText: 'Full name'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Save'),
-            ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool compact = constraints.maxWidth < 900;
+        final Widget content = Flex(
+          direction: compact ? Axis.vertical : Axis.horizontal,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            if (compact)
+              _accountsSummaryCard(controller)
+            else
+              Expanded(child: _accountsSummaryCard(controller)),
+            if (!compact) const SizedBox(width: 12),
+            if (compact) const SizedBox(height: 12),
+            if (compact)
+              _complaintsSummaryCard(controller)
+            else
+              Expanded(child: _complaintsSummaryCard(controller)),
           ],
         );
+
+        return compact ? SingleChildScrollView(child: content) : content;
       },
     );
-
-    if (save == true) {
-      await controller.updateAccountName(accountId, textController.text);
-    }
-  }
-
-  Future<void> _showRespondDialog(
-    BuildContext context,
-    AdminController controller,
-    String complaintId,
-  ) async {
-    final TextEditingController textController = TextEditingController();
-
-    final bool? save = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Respond to Complaint'),
-          content: TextField(
-            controller: textController,
-            maxLines: 4,
-            decoration: const InputDecoration(labelText: 'Admin response'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (save == true) {
-      await controller.respondToComplaint(complaintId, textController.text);
-    }
   }
 }

@@ -30,6 +30,7 @@ class AgoraService {
     if (normalized.isEmpty) {
       return defaultChannel;
     }
-    return 'appointment_$normalized';
+    final String channel = 'appointment_$normalized';
+    return channel;
   }
 }

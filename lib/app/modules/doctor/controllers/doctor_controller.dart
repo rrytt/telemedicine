@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,6 +33,7 @@ class DoctorChatMessageItem {
     this.message,
     this.attachmentName,
     this.attachmentType,
+    this.attachmentPath,
     this.deliveryStatus,
     this.seenAt,
     this.createdAt,
@@ -42,6 +44,7 @@ class DoctorChatMessageItem {
   final String? message;
   final String? attachmentName;
   final String? attachmentType;
+  final String? attachmentPath;
   final String? deliveryStatus;
   final DateTime? seenAt;
   final DateTime? createdAt;
@@ -67,13 +70,21 @@ class DoctorController extends GetxController {
   final RxInt selectedIndex = 0.obs;
   final RxBool isLoadingQueue = false.obs;
   final RxBool isAccepting = false.obs;
+  final RxBool isRejecting = false.obs;
+  final RxBool isClosingSession = false.obs;
   final RxBool isSavingNote = false.obs;
   final RxBool isLoadingMessages = false.obs;
   final RxBool isSendingMessage = false.obs;
+  final RxBool isUploading = false.obs;
   final RxString queueError = ''.obs;
   final RxString messagesError = ''.obs;
+  final RxString uploadStatusMessage = ''.obs;
+  final RxBool uploadStatusError = false.obs;
+  final RxDouble uploadProgress = 0.0.obs;
   final RxString notes = ''.obs;
+  final RxString processingAppointmentId = ''.obs;
   final TextEditingController messageController = TextEditingController();
+  final TextEditingController noteController = TextEditingController();
   final RxList<DoctorChatMessageItem> messages = <DoctorChatMessageItem>[].obs;
   final RxMap<String, int> unreadCountsByAppointment = <String, int>{}.obs;
   final RxList<DoctorDocumentItem> documents = <DoctorDocumentItem>[].obs;
@@ -160,6 +171,7 @@ class DoctorController extends GetxController {
       _messagesChannel = null;
     }
     messageController.dispose();
+    noteController.dispose();
     super.onClose();
   }
 
@@ -277,6 +289,7 @@ class DoctorController extends GetxController {
 
       if (row is Map<String, dynamic> && row['body'] != null) {
         notes.value = row['body'].toString();
+        noteController.text = notes.value;
       }
     } catch (_) {
       // Keep current text if no note is found.
@@ -303,7 +316,7 @@ class DoctorController extends GetxController {
         response = await SupabaseService.client
             .from('chat_messages')
             .select(
-              'id, sender_id, message_text, attachment_name, attachment_type, delivery_status, seen_at, created_at',
+              'id, sender_id, message_text, attachment_name, attachment_type, attachment_path, delivery_status, seen_at, created_at',
             )
             .eq('appointment_id', selectedAppointmentId)
             .order('created_at', ascending: true)
@@ -312,7 +325,7 @@ class DoctorController extends GetxController {
         response = await SupabaseService.client
             .from('chat_messages')
             .select(
-              'id, sender_id, message_text, attachment_name, attachment_type, created_at',
+              'id, sender_id, message_text, attachment_name, attachment_type, attachment_path, created_at',
             )
             .eq('appointment_id', selectedAppointmentId)
             .order('created_at', ascending: true)
@@ -328,6 +341,7 @@ class DoctorController extends GetxController {
             message: map['message_text']?.toString(),
             attachmentName: map['attachment_name']?.toString(),
             attachmentType: map['attachment_type']?.toString(),
+            attachmentPath: map['attachment_path']?.toString(),
             deliveryStatus: map['delivery_status']?.toString(),
             seenAt: DateTime.tryParse(map['seen_at']?.toString() ?? ''),
             createdAt: DateTime.tryParse(map['created_at']?.toString() ?? ''),
@@ -506,6 +520,98 @@ class DoctorController extends GetxController {
     }
   }
 
+  Future<void> sendAttachment() async {
+    if (isUploading.value || !SupabaseService.isConfigured) {
+      return;
+    }
+
+    if (!canReplyToSelectedPatient) {
+      Get.snackbar('Info', 'Accept appointment first, then send attachments.');
+      return;
+    }
+
+    final String appointmentId = selectedAppointmentId;
+    final String? userId = _currentUserId;
+    if (appointmentId.isEmpty || userId == null) {
+      return;
+    }
+
+    final FilePickerResult? picked = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      withData: true,
+      type: FileType.image,
+    );
+
+    if (picked == null || picked.files.isEmpty) {
+      return;
+    }
+
+    final PlatformFile file = picked.files.first;
+    if (file.bytes == null) {
+      Get.snackbar('Error', 'Unable to read selected file.');
+      return;
+    }
+
+    try {
+      isUploading.value = true;
+      uploadStatusError.value = false;
+      uploadStatusMessage.value = 'Uploading attachment...';
+      uploadProgress.value = 0.2;
+
+      final String safeName = file.name.replaceAll(' ', '_');
+      final String path =
+          '$userId/$appointmentId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
+
+      await SupabaseService.client.storage
+          .from('medical-files')
+          .uploadBinary(path, file.bytes!);
+      uploadProgress.value = 0.7;
+
+      await SupabaseService.client
+          .from('medical_files')
+          .insert(<String, dynamic>{
+            'patient_id': selectedPatientId,
+            'doctor_id': SupabaseService.client.auth.currentUser?.id,
+            'uploaded_by': userId,
+            'file_name': file.name,
+            'file_path': path,
+            'content_type': file.extension,
+          });
+
+      await _insertChatMessage(<String, dynamic>{
+        'appointment_id': appointmentId,
+        'sender_id': userId,
+        'attachment_path': path,
+        'attachment_name': file.name,
+        'attachment_type': file.extension,
+      });
+
+      uploadProgress.value = 1.0;
+      uploadStatusMessage.value = 'Attachment sent.';
+      await loadMessages();
+    } catch (_) {
+      uploadStatusError.value = true;
+      uploadStatusMessage.value = 'Failed uploading attachment.';
+      Get.snackbar('Error', 'Failed to upload attachment.');
+    } finally {
+      isUploading.value = false;
+      Future<void>.delayed(const Duration(seconds: 2), () {
+        uploadStatusMessage.value = '';
+        uploadProgress.value = 0;
+      });
+    }
+  }
+
+  Future<void> acceptAppointment(int index) async {
+    selectedIndex.value = index;
+    await acceptSelectedAppointment();
+  }
+
+  Future<void> rejectAppointment(int index) async {
+    selectedIndex.value = index;
+    await rejectSelectedAppointment();
+  }
+
   Future<void> acceptSelectedAppointment() async {
     if (!SupabaseService.isConfigured ||
         selectedItem == null ||
@@ -513,12 +619,18 @@ class DoctorController extends GetxController {
       return;
     }
 
+    final String appointmentId = selectedAppointmentId;
+    if (appointmentId.isEmpty) {
+      return;
+    }
+
     try {
+      processingAppointmentId.value = appointmentId;
       isAccepting.value = true;
       await SupabaseService.client
           .from('appointments')
           .update(<String, dynamic>{'status': 'Accepted'})
-          .eq('id', selectedAppointmentId);
+          .eq('id', appointmentId);
 
       await loadQueue();
       Get.snackbar('Accepted', 'Appointment accepted. Chat is now active.');
@@ -526,6 +638,66 @@ class DoctorController extends GetxController {
       Get.snackbar('Error', 'Failed to accept appointment.');
     } finally {
       isAccepting.value = false;
+      processingAppointmentId.value = '';
+    }
+  }
+
+  Future<void> rejectSelectedAppointment() async {
+    if (!SupabaseService.isConfigured ||
+        selectedItem == null ||
+        !selectedItem!.isPending) {
+      return;
+    }
+
+    final String appointmentId = selectedAppointmentId;
+    if (appointmentId.isEmpty) {
+      return;
+    }
+
+    try {
+      processingAppointmentId.value = appointmentId;
+      isRejecting.value = true;
+      await SupabaseService.client
+          .from('appointments')
+          .update(<String, dynamic>{'status': 'Rejected'})
+          .eq('id', appointmentId);
+
+      await loadQueue();
+      Get.snackbar('Rejected', 'Appointment rejected successfully.');
+    } catch (_) {
+      Get.snackbar('Error', 'Failed to reject appointment.');
+    } finally {
+      isRejecting.value = false;
+      processingAppointmentId.value = '';
+    }
+  }
+
+  Future<void> closeCurrentSession() async {
+    if (!SupabaseService.isConfigured || selectedAppointmentId.isEmpty) {
+      return;
+    }
+
+    try {
+      isClosingSession.value = true;
+      await SupabaseService.client
+          .from('appointments')
+          .update(<String, dynamic>{'status': 'Completed'})
+          .eq('id', selectedAppointmentId);
+
+      // Clear current session data
+      messages.clear();
+      notes.value = '';
+      noteController.clear();
+      documents.clear();
+      unreadCountsByAppointment[selectedAppointmentId] = 0;
+
+      await loadQueue();
+      Get.back(); // Navigate back to dashboard
+      Get.snackbar('Session Closed', 'The appointment session has been completed.');
+    } catch (_) {
+      Get.snackbar('Error', 'Failed to close session.');
+    } finally {
+      isClosingSession.value = false;
     }
   }
 
@@ -601,5 +773,19 @@ class DoctorController extends GetxController {
     final String hh = dateTime.hour.toString().padLeft(2, '0');
     final String min = dateTime.minute.toString().padLeft(2, '0');
     return '${dateTime.year}-$mm-$dd $hh:$min';
+  }
+
+  void openImage(DoctorChatMessageItem message) {
+    final String? type = message.attachmentType?.toLowerCase();
+    if (message.attachmentPath != null &&
+        (type == 'jpg' || type == 'jpeg' || type == 'png' || type == 'webp' || type == 'gif')) {
+      Get.toNamed(
+        AppRoutes.imageViewer,
+        arguments: {
+          'path': message.attachmentPath,
+          'name': message.attachmentName ?? 'image.jpg',
+        },
+      );
+    }
   }
 }

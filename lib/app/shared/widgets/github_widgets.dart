@@ -135,8 +135,8 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
                                 if (item.unread)
                                   const GithubBadge(
                                     text: 'New',
-                                    textColor: Color(0xFF0969DA),
-                                    bgColor: Color(0xFFDDF4FF),
+                                    textColor: GithubTheme.info,
+                                    bgColor: GithubTheme.infoSurface,
                                   ),
                               ],
                             ),
