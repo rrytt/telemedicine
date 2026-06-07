@@ -21,11 +21,7 @@ class InboxNotificationItem {
 }
 
 class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
-  const GithubTopBar({
-    super.key,
-    required this.title,
-    this.onLogout,
-  });
+  const GithubTopBar({super.key, required this.title, this.onLogout});
 
   final String title;
   final VoidCallback? onLogout;
@@ -63,11 +59,7 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
           const Icon(Icons.local_hospital_outlined, size: 20),
           const SizedBox(width: 8),
           Flexible(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
         ],
       ),
@@ -75,7 +67,9 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
           onPressed: themeController.toggleThemeMode,
-          icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+          icon: Icon(
+            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+          ),
         ),
         if (onLogout != null)
           TextButton.icon(
@@ -104,64 +98,70 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               const PopupMenuDivider(height: 1),
               ...notifications.map(
-                (InboxNotificationItem item) => PopupMenuItem<InboxNotificationItem>(
-                  enabled: false,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Icon(
-                        item.type == 'Reminder'
-                            ? Icons.alarm_outlined
-                            : item.type == 'Appointment'
+                (InboxNotificationItem item) =>
+                    PopupMenuItem<InboxNotificationItem>(
+                      enabled: false,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Icon(
+                            item.type == 'Reminder'
+                                ? Icons.alarm_outlined
+                                : item.type == 'Appointment'
                                 ? Icons.event_outlined
                                 : Icons.description_outlined,
-                        size: 16,
-                        color: GithubTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Row(
+                            size: 16,
+                            color: GithubTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Expanded(
-                                  child: Text(
-                                    item.title,
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        item.title,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    if (item.unread)
+                                      const GithubBadge(
+                                        text: 'New',
+                                        textColor: GithubTheme.info,
+                                        bgColor: GithubTheme.infoSurface,
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  item.description,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: GithubTheme.textSecondary,
                                   ),
                                 ),
-                                if (item.unread)
-                                  const GithubBadge(
-                                    text: 'New',
-                                    textColor: GithubTheme.info,
-                                    bgColor: GithubTheme.infoSurface,
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.time,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: GithubTheme.textSecondary,
                                   ),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item.description,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: GithubTheme.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.time,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: GithubTheme.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
               ),
             ];
           },
@@ -208,7 +208,10 @@ class GithubSectionHeader extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(color: GithubTheme.textSecondary, fontSize: 12),
+            style: const TextStyle(
+              color: GithubTheme.textSecondary,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -301,11 +304,20 @@ class PatientSidebarCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Patient Portal', style: TextStyle(fontWeight: FontWeight.w700)),
+            Text(
+              'Patient Portal',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
             SizedBox(height: 10),
-            SidebarLink(icon: Icons.calendar_month_outlined, text: 'Appointments'),
+            SidebarLink(
+              icon: Icons.calendar_month_outlined,
+              text: 'Appointments',
+            ),
             SizedBox(height: 4),
-            SidebarLink(icon: Icons.description_outlined, text: 'Medical Reports'),
+            SidebarLink(
+              icon: Icons.description_outlined,
+              text: 'Medical Reports',
+            ),
             SizedBox(height: 4),
             SidebarLink(
               icon: Icons.volunteer_activism_outlined,
@@ -332,6 +344,63 @@ class SidebarLink extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       leading: Icon(icon, size: 18, color: GithubTheme.textSecondary),
       title: Text(text, style: const TextStyle(fontSize: 14)),
+    );
+  }
+}
+
+class GithubDrawerItem {
+  const GithubDrawerItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+}
+
+class GithubDrawer extends StatelessWidget {
+  const GithubDrawer({super.key, required this.menuTitle, required this.items});
+
+  final String menuTitle;
+  final List<GithubDrawerItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: GithubTheme.surface,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: const BoxDecoration(gradient: GithubTheme.heroGradient),
+            margin: EdgeInsets.zero,
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                menuTitle,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          ...items.map(
+            (GithubDrawerItem item) => ListTile(
+              leading: Icon(item.icon),
+              title: Text(item.label),
+              onTap: () {
+                Get.back();
+                item.onTap();
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

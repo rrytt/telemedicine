@@ -21,4 +21,5 @@ class AppRoutes {
   static const String terms = '/terms';
   static const String privacy = '/privacy';
   static const String about = '/about';
+  static const String patientSettings = '/patient-settings';
 }

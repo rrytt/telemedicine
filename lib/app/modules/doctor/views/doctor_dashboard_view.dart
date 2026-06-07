@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../routes/app_pages.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../theme/github_theme.dart';
+import '../../../shared/widgets/github_widgets.dart';
 import '../controllers/doctor_controller.dart';
 
 class DoctorDashboardView extends GetView<DoctorController> {
@@ -24,59 +25,30 @@ class DoctorDashboardView extends GetView<DoctorController> {
           bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
       ),
-      drawer: Drawer(
-        backgroundColor: GithubTheme.surface,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: GithubTheme.primary),
-              margin: EdgeInsets.zero,
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-              child: const Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  'Doctor Menu',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard),
-              title: const Text('Dashboard'),
-              onTap: () {
-                Get.back();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () {
-                Get.back();
-                Get.toNamed(AppRoutes.doctorProfile);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Get.back();
-                Get.toNamed(AppRoutes.settings);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                Get.find<AuthController>().logout();
-              },
-            ),
-          ],
-        ),
+      drawer: GithubDrawer(
+        menuTitle: 'Doctor Menu',
+        items: <GithubDrawerItem>[
+          GithubDrawerItem(
+            icon: Icons.dashboard,
+            label: 'Dashboard',
+            onTap: () {},
+          ),
+          GithubDrawerItem(
+            icon: Icons.person,
+            label: 'Profile',
+            onTap: () => Get.toNamed(AppRoutes.doctorProfile),
+          ),
+          GithubDrawerItem(
+            icon: Icons.settings,
+            label: 'Settings',
+            onTap: () => Get.toNamed(AppRoutes.settings),
+          ),
+          GithubDrawerItem(
+            icon: Icons.logout,
+            label: 'Logout',
+            onTap: () => Get.find<AuthController>().logout(),
+          ),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoadingQueue.value) {
@@ -121,8 +93,22 @@ class DoctorDashboardView extends GetView<DoctorController> {
                   vertical: 18,
                 ),
                 leading: CircleAvatar(
+                  radius: 24,
                   backgroundColor: GithubTheme.primary.withValues(alpha: 0.16),
-                  child: const Icon(Icons.person, color: GithubTheme.primary),
+                  backgroundImage: patient.avatarUrl != null
+                      ? NetworkImage(patient.avatarUrl!)
+                      : null,
+                  child: patient.avatarUrl == null
+                      ? Text(
+                          patient.name.isNotEmpty
+                              ? patient.name[0].toUpperCase()
+                              : 'P',
+                          style: const TextStyle(
+                            color: GithubTheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
                 title: Text(
                   patient.name,
@@ -169,9 +155,9 @@ class DoctorDashboardView extends GetView<DoctorController> {
                               ElevatedButton(
                                 onPressed:
                                     controller.processingAppointmentId.value ==
-                                        patient.appointmentId
-                                    ? null
-                                    : () => controller.acceptAppointment(index),
+                                            patient.appointmentId
+                                        ? null
+                                        : () => controller.acceptAppointment(index),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: GithubTheme.primary,
                                   foregroundColor: Colors.white,
@@ -179,9 +165,7 @@ class DoctorDashboardView extends GetView<DoctorController> {
                                 child: Obx(() {
                                   final bool isProcessing =
                                       controller.isAccepting.value &&
-                                      controller
-                                              .processingAppointmentId
-                                              .value ==
+                                      controller.processingAppointmentId.value ==
                                           patient.appointmentId;
                                   return isProcessing
                                       ? const SizedBox(
@@ -191,8 +175,8 @@ class DoctorDashboardView extends GetView<DoctorController> {
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
+                                              Colors.white,
+                                            ),
                                           ),
                                         )
                                       : const Text('Accept');
@@ -202,9 +186,9 @@ class DoctorDashboardView extends GetView<DoctorController> {
                               ElevatedButton(
                                 onPressed:
                                     controller.processingAppointmentId.value ==
-                                        patient.appointmentId
-                                    ? null
-                                    : () => controller.rejectAppointment(index),
+                                            patient.appointmentId
+                                        ? null
+                                        : () => controller.rejectAppointment(index),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: GithubTheme.danger,
                                   foregroundColor: Colors.white,
@@ -212,9 +196,7 @@ class DoctorDashboardView extends GetView<DoctorController> {
                                 child: Obx(() {
                                   final bool isProcessing =
                                       controller.isRejecting.value &&
-                                      controller
-                                              .processingAppointmentId
-                                              .value ==
+                                      controller.processingAppointmentId.value ==
                                           patient.appointmentId;
                                   return isProcessing
                                       ? const SizedBox(
@@ -224,24 +206,49 @@ class DoctorDashboardView extends GetView<DoctorController> {
                                             strokeWidth: 2,
                                             valueColor:
                                                 AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
+                                              Colors.white,
+                                            ),
                                           ),
                                         )
                                       : const Text('Reject');
                                 }),
                               ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Remove appointment',
+                                onPressed: () => _confirmRemoveAppointment(
+                                  context,
+                                  controller,
+                                  index,
+                                ),
+                              ),
                             ],
                           )
-                        : IconButton(
-                            icon: const Icon(
-                              Icons.chat,
-                              color: GithubTheme.info,
-                            ),
-                            onPressed: () {
-                              controller.pickPatient(index);
-                              Get.toNamed(AppRoutes.doctorChat);
-                            },
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.chat,
+                                  color: GithubTheme.info,
+                                ),
+                                onPressed: () {
+                                  controller.pickPatient(index);
+                                  Get.toNamed(AppRoutes.doctorChat);
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Remove appointment',
+                                onPressed: () => _confirmRemoveAppointment(
+                                  context,
+                                  controller,
+                                  index,
+                                ),
+                              ),
+                            ],
                           ),
                   ],
                 ),
@@ -250,6 +257,37 @@ class DoctorDashboardView extends GetView<DoctorController> {
           },
         );
       }),
+    );
+  }
+
+  void _confirmRemoveAppointment(
+    BuildContext context,
+    DoctorController controller,
+    int index,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Remove Appointment'),
+          content: const Text(
+            'Remove this appointment from your dashboard. The patient will still be able to access it until they also remove it.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Get.back();
+                await controller.hideAppointment(index);
+              },
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

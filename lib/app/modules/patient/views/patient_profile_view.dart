@@ -45,7 +45,7 @@ class PatientProfileView extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,15 +61,16 @@ class PatientProfileView extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(22),
-                  child: Row(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Stack(
                         alignment: Alignment.bottomRight,
                         children: <Widget>[
                           Obx(
                             () => CircleAvatar(
-                              radius: 30,
+                              radius: 48,
                               backgroundColor: GithubTheme.primary,
                               foregroundImage:
                                   profileController.avatarUrl.value.isNotEmpty
@@ -85,203 +86,185 @@ class PatientProfileView extends StatelessWidget {
                                           : 'P',
                                       style: const TextStyle(
                                         color: Colors.white,
-                                        fontSize: 24,
+                                        fontSize: 32,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     )
                                   : null,
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.camera_alt),
-                            onPressed: profileController.isUploading.value
-                                ? null
-                                : profileController.uploadAvatar,
-                            tooltip: 'Change profile image',
+                          Obx(
+                            () => IconButton(
+                              icon: const Icon(Icons.camera_alt),
+                              onPressed: profileController.isUploading.value
+                                  ? null
+                                  : profileController.uploadAvatar,
+                              tooltip: 'Change profile image',
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              profileController
-                                      .fullNameController
-                                      .text
-                                      .isNotEmpty
-                                  ? profileController.fullNameController.text
-                                  : (email ?? 'Patient'),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            TextField(
-                              controller: profileController.fullNameController,
-                              decoration: InputDecoration(
-                                labelText: 'Full name',
-                                filled: true,
-                                fillColor: GithubTheme.bg,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: GithubTheme.border,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: profileController.phoneController,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                labelText: 'Phone Number',
-                                filled: true,
-                                fillColor: GithubTheme.bg,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: GithubTheme.border,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            DropdownButtonFormField<String>(
-                              initialValue:
-                                  profileController
-                                      .bloodTypeController
-                                      .text
-                                      .isNotEmpty
-                                  ? profileController.bloodTypeController.text
-                                  : null,
-                              items:
-                                  <String>[
-                                        'A+',
-                                        'A-',
-                                        'B+',
-                                        'B-',
-                                        'AB+',
-                                        'AB-',
-                                        'O+',
-                                        'O-',
-                                      ]
-                                      .map(
-                                        (String v) => DropdownMenuItem<String>(
-                                          value: v,
-                                          child: Text(v),
-                                        ),
-                                      )
-                                      .toList(),
-                              onChanged: (String? v) {
-                                if (v != null) {
-                                  profileController.bloodTypeController.text =
-                                      v;
-                                }
-                              },
-                              decoration: InputDecoration(
-                                labelText: 'Blood Type',
-                                filled: true,
-                                fillColor: GithubTheme.bg,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: GithubTheme.border,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller:
-                                  profileController.medicalRecordController,
-                              maxLines: 5,
-                              decoration: InputDecoration(
-                                labelText: 'Medical Record',
-                                filled: true,
-                                fillColor: GithubTheme.bg,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: GithubTheme.border,
-                                  ),
-                                ),
-                                hintText: 'Detailed medical history or notes',
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: profileController.bioController,
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                labelText: 'Medical notes',
-                                filled: true,
-                                fillColor: GithubTheme.bg,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: GithubTheme.border,
-                                  ),
-                                ),
-                                hintText:
-                                    'Optional: share health goals or conditions',
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: GithubTheme.primary,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              onPressed: profileController.isSaving.value
-                                  ? null
-                                  : profileController.saveProfile,
-                              child: profileController.isSaving.value
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Save Profile'),
-                            ),
-                            if (profileController
-                                .statusMessage
-                                .value
-                                .isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  profileController.statusMessage.value,
-                                  style: const TextStyle(
-                                    color: GithubTheme.success,
-                                  ),
-                                ),
-                              ),
-                            if (profileController.errorMessage.value.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: Text(
-                                  profileController.errorMessage.value,
-                                  style: const TextStyle(
-                                    color: GithubTheme.danger,
-                                  ),
-                                ),
-                              ),
-                          ],
+                      const SizedBox(height: 16),
+                      Text(
+                        profileController.fullNameController.text.isNotEmpty
+                            ? profileController.fullNameController.text
+                            : (email ?? 'Patient'),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        email ?? 'No email available',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: GithubTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Update your profile picture and medical details for better care coordination.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: GithubTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Card(
+                color: GithubTheme.surface,
+                elevation: 2,
+                shadowColor: GithubTheme.textPrimary.withValues(alpha: 0.08),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: GithubTheme.border.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      TextField(
+                        controller: profileController.fullNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Full name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: profileController.phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone Number',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue:
+                            profileController
+                                .bloodTypeController
+                                .text
+                                .isNotEmpty
+                            ? profileController.bloodTypeController.text
+                            : null,
+                        items:
+                            <String>[
+                                  'A+',
+                                  'A-',
+                                  'B+',
+                                  'B-',
+                                  'AB+',
+                                  'AB-',
+                                  'O+',
+                                  'O-',
+                                ]
+                                .map(
+                                  (String v) => DropdownMenuItem<String>(
+                                    value: v,
+                                    child: Text(v),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (String? v) {
+                          if (v != null) {
+                            profileController.bloodTypeController.text = v;
+                          }
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Blood Type',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: profileController.medicalRecordController,
+                        maxLines: 5,
+                        decoration: const InputDecoration(
+                          labelText: 'Medical Record',
+                          border: OutlineInputBorder(),
+                          hintText: 'Detailed medical history or notes',
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: profileController.bioController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Medical notes',
+                          border: OutlineInputBorder(),
+                          hintText:
+                              'Optional: share health goals or conditions',
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: GithubTheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: profileController.isSaving.value
+                            ? null
+                            : profileController.saveProfile,
+                        child: profileController.isSaving.value
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Save Profile'),
+                      ),
+                      if (profileController.statusMessage.value.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            profileController.statusMessage.value,
+                            style: const TextStyle(color: GithubTheme.success),
+                          ),
+                        ),
+                      if (profileController.errorMessage.value.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            profileController.errorMessage.value,
+                            style: const TextStyle(color: GithubTheme.danger),
+                          ),
+                        ),
                     ],
                   ),
                 ),

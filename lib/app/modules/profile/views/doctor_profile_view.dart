@@ -50,72 +50,86 @@ class DoctorProfileView extends StatelessWidget {
                 ),
                 margin: EdgeInsets.zero,
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Row(
+                      Stack(
+                        alignment: Alignment.bottomRight,
                         children: <Widget>[
-                          Stack(
-                            alignment: Alignment.bottomRight,
-                            children: <Widget>[
-                              CircleAvatar(
-                                radius: 40,
-                                backgroundColor: GithubTheme.secondary,
-                                foregroundImage:
-                                    profileController.avatarUrl.value.isNotEmpty
-                                    ? NetworkImage(
-                                            profileController.avatarUrl.value,
-                                          )
-                                          as ImageProvider<Object>?
-                                    : null,
-                                child: profileController.avatarUrl.value.isEmpty
-                                    ? const Icon(Icons.person, size: 48)
-                                    : null,
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.camera_alt),
-                                onPressed: profileController.isUploading.value
-                                    ? null
-                                    : profileController.uploadAvatar,
-                                tooltip: 'Change profile image',
-                              ),
-                            ],
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: GithubTheme.secondary,
+                            foregroundImage:
+                                profileController.avatarUrl.value.isNotEmpty
+                                ? NetworkImage(
+                                        profileController.avatarUrl.value,
+                                      )
+                                      as ImageProvider<Object>?
+                                : null,
+                            child: profileController.avatarUrl.value.isEmpty
+                                ? const Icon(Icons.person, size: 52)
+                                : null,
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                const Text(
-                                  'Doctor account',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  profileController.email.value,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: GithubTheme.textSecondary,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Role: ${profileController.role.value}',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: GithubTheme.textSecondary,
-                                  ),
-                                ),
-                              ],
+                          Obx(
+                            () => IconButton(
+                              icon: const Icon(Icons.camera_alt),
+                              onPressed: profileController.isUploading.value
+                                  ? null
+                                  : profileController.uploadAvatar,
+                              tooltip: 'Change profile image',
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+                      Text(
+                        profileController.fullNameController.text.isNotEmpty
+                            ? profileController.fullNameController.text
+                            : profileController.email.value,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        profileController.email.value,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: GithubTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Doctor profile image and contact details are shown here for easy updates.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: GithubTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Card(
+                color: GithubTheme.surface,
+                elevation: 2,
+                shadowColor: GithubTheme.textPrimary.withValues(alpha: 0.08),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: GithubTheme.border.withValues(alpha: 0.5),
+                  ),
+                ),
+                margin: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
                       TextField(
                         controller: profileController.fullNameController,
                         decoration: const InputDecoration(

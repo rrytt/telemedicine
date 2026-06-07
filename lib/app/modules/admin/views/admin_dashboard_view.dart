@@ -21,6 +21,31 @@ class AdminDashboardView extends StatelessWidget {
         title: 'Admin Portal',
         onLogout: authController.logout,
       ),
+      drawer: GithubDrawer(
+        menuTitle: 'Admin Menu',
+        items: <GithubDrawerItem>[
+          GithubDrawerItem(
+            icon: Icons.dashboard,
+            label: 'Dashboard',
+            onTap: () {},
+          ),
+          GithubDrawerItem(
+            icon: Icons.person_outline,
+            label: 'Accounts',
+            onTap: () => Get.toNamed(AppRoutes.adminAccounts),
+          ),
+          GithubDrawerItem(
+            icon: Icons.report_outlined,
+            label: 'Complaints',
+            onTap: () => Get.toNamed(AppRoutes.adminComplaints),
+          ),
+          GithubDrawerItem(
+            icon: Icons.logout,
+            label: 'Logout',
+            onTap: () => authController.logout(),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

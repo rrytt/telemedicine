@@ -20,6 +20,7 @@ import 'modules/doctor/views/about_view.dart';
 import 'modules/patient/views/chat_view.dart';
 import 'modules/patient/views/patient_dashboard_view.dart';
 import 'modules/patient/views/patient_profile_view.dart';
+import 'modules/patient/views/patient_settings_view.dart';
 import 'modules/profile/views/doctor_profile_view.dart';
 import 'modules/profile/views/public_profile_view.dart';
 import 'routes/app_pages.dart';
@@ -51,10 +52,7 @@ class TelemedicineApp extends StatelessWidget {
             name: AppRoutes.accountType,
             page: () => const AccountTypeView(),
           ),
-          GetPage<dynamic>(
-            name: AppRoutes.login,
-            page: () => LoginView(),
-          ),
+          GetPage<dynamic>(name: AppRoutes.login, page: () => LoginView()),
           GetPage<dynamic>(
             name: AppRoutes.adminLogin,
             page: () => const AdminLoginView(),
@@ -96,10 +94,7 @@ class TelemedicineApp extends StatelessWidget {
             name: AppRoutes.call,
             page: () => const AgoraCallView(),
           ),
-          GetPage<dynamic>(
-            name: AppRoutes.chat,
-            page: () => const ChatView(),
-          ),
+          GetPage<dynamic>(name: AppRoutes.chat, page: () => const ChatView()),
           GetPage<dynamic>(
             name: AppRoutes.doctorChat,
             page: () => const DoctorChatView(),
@@ -108,6 +103,10 @@ class TelemedicineApp extends StatelessWidget {
           GetPage<dynamic>(
             name: AppRoutes.settings,
             page: () => const SettingsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.patientSettings,
+            page: () => const PatientSettingsView(),
           ),
           GetPage<dynamic>(
             name: AppRoutes.twoFactor,

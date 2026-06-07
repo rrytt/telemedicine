@@ -8,11 +8,17 @@ import '../../../routes/app_pages.dart';
 import '../../../core/supabase/supabase_service.dart';
 
 class DoctorOption {
-  const DoctorOption({required this.id, required this.name, this.specialty});
+  const DoctorOption({
+    required this.id,
+    required this.name,
+    this.specialty,
+    this.avatarUrl,
+  });
 
   final String id;
   final String name;
   final String? specialty;
+  final String? avatarUrl;
 }
 
 class PatientAppointment {
@@ -23,6 +29,7 @@ class PatientAppointment {
     required this.time,
     required this.status,
     this.urgent = false,
+    this.doctorAvatarUrl,
   });
 
   final String id;
@@ -31,6 +38,7 @@ class PatientAppointment {
   final String time;
   final String status;
   final bool urgent;
+  final String? doctorAvatarUrl;
 
   bool get chatEnabled => status == 'Accepted';
 }
@@ -278,16 +286,27 @@ class PatientController extends GetxController {
     try {
       final List<dynamic> response = await SupabaseService.client
           .from('profiles')
-          .select('id, full_name')
+          .select('id, full_name, specialty, avatar_url')
           .eq('role', 'doctor')
           .order('full_name', ascending: true)
           .limit(100);
 
-      final List<DoctorOption> list = response.map((dynamic row) {
-        final Map<String, dynamic> map = row as Map<String, dynamic>;
-        final String name = map['full_name']?.toString() ?? 'Doctor';
-        return DoctorOption(id: map['id'].toString(), name: name);
-      }).toList();
+      final List<DoctorOption> list = await Future.wait(response.map<Future<DoctorOption>>(
+        (dynamic row) async {
+          final Map<String, dynamic> map = row as Map<String, dynamic>;
+          final String name = map['full_name']?.toString() ?? 'Doctor';
+          final String avatarPath = map['avatar_url']?.toString() ?? '';
+          final String avatarUrl = avatarPath.isNotEmpty
+              ? await _createSignedAvatarUrl(avatarPath)
+              : '';
+          return DoctorOption(
+            id: map['id'].toString(),
+            name: name,
+            specialty: map['specialty']?.toString(),
+            avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+          );
+        },
+      ));
 
       doctors.assignAll(list);
       filteredDoctors.assignAll(list);
@@ -297,6 +316,17 @@ class PatientController extends GetxController {
       }
     } catch (e) {
       bookingError.value = 'Failed to load doctors list. ${_friendlyError(e)}';
+    }
+  }
+
+  Future<String> _createSignedAvatarUrl(String path) async {
+    try {
+      final String signedUrl = await SupabaseService.client.storage
+          .from('avatars')
+          .createSignedUrl(path, 3600);
+      return signedUrl;
+    } catch (_) {
+      return '';
     }
   }
 
@@ -356,28 +386,38 @@ class PatientController extends GetxController {
       final List<dynamic> response = await SupabaseService.client
           .from('appointments')
           .select(
-            'id, doctor_id, status, scheduled_at, is_urgent, doctor:doctor_id(full_name)',
+            'id, doctor_id, status, scheduled_at, is_urgent, doctor:doctor_id(full_name, avatar_url)',
           )
           .eq('patient_id', userId)
+          .eq('patient_deleted', false)
           .order('scheduled_at', ascending: true)
           .limit(30);
 
-      final List<PatientAppointment> parsed = response.map((dynamic row) {
-        final Map<String, dynamic> map = row as Map<String, dynamic>;
-        final Map<String, dynamic>? doctor =
-            map['doctor'] as Map<String, dynamic>?;
+      final List<PatientAppointment> parsed = await Future.wait(
+        response.map<Future<PatientAppointment>>(
+          (dynamic row) async {
+            final Map<String, dynamic> map = row as Map<String, dynamic>;
+            final Map<String, dynamic>? doctor =
+                map['doctor'] as Map<String, dynamic>?;
+            final String avatarPath = doctor?['avatar_url']?.toString() ?? '';
+            final String avatarUrl = avatarPath.isNotEmpty
+                ? await _createSignedAvatarUrl(avatarPath)
+                : '';
 
-        return PatientAppointment(
-          id: map['id']?.toString() ?? '',
-          doctorId: map['doctor_id']?.toString() ?? '',
-          doctor: (doctor?['full_name']?.toString().isNotEmpty ?? false)
-              ? doctor!['full_name'].toString()
-              : 'Doctor',
-          time: _formatDate(map['scheduled_at']?.toString()),
-          status: map['status']?.toString() ?? 'Scheduled',
-          urgent: map['is_urgent'] == true,
-        );
-      }).toList();
+            return PatientAppointment(
+              id: map['id']?.toString() ?? '',
+              doctorId: map['doctor_id']?.toString() ?? '',
+              doctor: (doctor?['full_name']?.toString().isNotEmpty ?? false)
+                  ? doctor!['full_name'].toString()
+                  : 'Doctor',
+              time: _formatDate(map['scheduled_at']?.toString()),
+              status: map['status']?.toString() ?? 'Scheduled',
+              urgent: map['is_urgent'] == true,
+              doctorAvatarUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+            );
+          },
+        ),
+      );
 
       appointments.assignAll(parsed);
       if (parsed.isNotEmpty) {
@@ -650,21 +690,96 @@ class PatientController extends GetxController {
       return;
     }
 
-    final String pathPrefix = '$userId/$appointmentId';
-
     try {
       isLoadingAppointments.value = true;
 
-      // Delete any uploaded files stored for this appointment
+      final Map<String, dynamic>? appointment = await SupabaseService.client
+          .from('appointments')
+          .select('id, patient_id, doctor_id, patient_deleted, doctor_deleted')
+          .eq('id', appointmentId)
+          .maybeSingle();
+
+      if (appointment == null) {
+        Get.snackbar('Error', 'Appointment was not found.');
+        return;
+      }
+
+      final String rowPatientId = appointment['patient_id']?.toString() ?? '';
+      final String rowDoctorId = appointment['doctor_id']?.toString() ?? '';
+      final bool patientDeleted = appointment['patient_deleted'] == true;
+      final bool doctorDeleted = appointment['doctor_deleted'] == true;
+
+      if (rowPatientId != userId) {
+        Get.snackbar('Error', 'You can only remove your own appointment records.');
+        return;
+      }
+
+      if (patientDeleted) {
+        Get.snackbar('Info', 'This appointment is already removed from your list.');
+        return;
+      }
+
+      if (doctorDeleted) {
+        await _removeAppointmentResources(appointmentId, rowPatientId, rowDoctorId);
+
+        if (selectedChatAppointmentId.value == appointmentId) {
+          selectedChatAppointmentId.value = null;
+          messages.clear();
+        }
+
+        Get.snackbar(
+          'Deleted',
+          'Appointment removed permanently after both sides deleted it.',
+        );
+      } else {
+        await SupabaseService.client
+            .from('appointments')
+            .update(<String, dynamic>{'patient_deleted': true})
+            .eq('id', appointmentId)
+            .eq('patient_id', userId);
+
+        if (selectedChatAppointmentId.value == appointmentId) {
+          selectedChatAppointmentId.value = null;
+          messages.clear();
+        }
+
+        Get.snackbar(
+          'Removed',
+          'Appointment removed from your list. The doctor can still access it until they also remove it.',
+        );
+      }
+
+      await loadAppointments();
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to remove appointment: ${_friendlyError(e)}',
+      );
+    } finally {
+      isLoadingAppointments.value = false;
+    }
+  }
+
+  Future<void> _removeAppointmentResources(
+    String appointmentId,
+    String patientId,
+    String doctorId,
+  ) async {
+    final List<String> prefixes = <String>[
+      '$patientId/$appointmentId',
+      '$doctorId/$appointmentId',
+    ];
+
+    for (final String prefix in prefixes) {
       try {
         final List<dynamic> storedFiles = await SupabaseService.client.storage
             .from('medical-files')
-            .list(path: pathPrefix);
+            .list(path: prefix);
         if (storedFiles.isNotEmpty) {
           final List<String> removePaths = storedFiles
               .map((dynamic item) => item['name']?.toString())
               .whereType<String>()
-              .map((String name) => '$pathPrefix/$name')
+              .map((String name) => '$prefix/$name')
               .toList();
           if (removePaths.isNotEmpty) {
             await SupabaseService.client.storage
@@ -673,46 +788,34 @@ class PatientController extends GetxController {
           }
         }
       } catch (_) {
-        // Ignore storage cleanup errors and continue to remove the appointment.
+        // Ignore storage cleanup errors and continue.
       }
+    }
 
-      // Also clean any medical_files rows saved with this appointment path
+    for (final String prefix in prefixes) {
       try {
         await SupabaseService.client
             .from('medical_files')
             .delete()
-            .like('file_path', '$pathPrefix/%');
+            .like('file_path', '$prefix/%');
       } catch (_) {
-        // Continue even if the supplemental table cleanup fails.
+        // Ignore cleanup failures and continue.
       }
+    }
 
+    try {
       await SupabaseService.client
           .from('chat_messages')
           .delete()
-          .eq('appointment_id', appointmentId)
-          .eq('patient_id', userId);
-
-      await SupabaseService.client
-          .from('appointments')
-          .delete()
-          .eq('id', appointmentId)
-          .eq('patient_id', userId);
-
-      if (selectedChatAppointmentId.value == appointmentId) {
-        selectedChatAppointmentId.value = null;
-        messages.clear();
-      }
-
-      Get.snackbar('Deleted', 'Appointment and related files were removed.');
-      await loadAppointments();
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to delete appointment: ${_friendlyError(e)}',
-      );
-    } finally {
-      isLoadingAppointments.value = false;
+          .eq('appointment_id', appointmentId);
+    } catch (_) {
+      // Continue even if chat cleanup fails.
     }
+
+    await SupabaseService.client
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentId);
   }
 
   Future<void> sendTextMessage() async {

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../theme/github_theme.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../../shared/widgets/github_widgets.dart';
 import '../controllers/patient_controller.dart';
 
 class PatientDashboardView extends StatelessWidget {
@@ -19,7 +20,7 @@ class PatientDashboardView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('My Health Dashboard'),
         elevation: 0,
-        backgroundColor: GithubTheme.bg,
+        backgroundColor: GithubTheme.surface,
         foregroundColor: GithubTheme.textPrimary,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
@@ -31,81 +32,49 @@ class PatientDashboardView extends StatelessWidget {
         shape: const Border(
           bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
         ),
-        actions: <Widget>[
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            icon: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: GithubTheme.surface,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.person, size: 18),
-            ),
-            onPressed: () => Get.toNamed(AppRoutes.patientProfile),
-            tooltip: 'Profile',
+      ),
+      drawer: GithubDrawer(
+        menuTitle: 'Patient Menu',
+        items: <GithubDrawerItem>[
+          GithubDrawerItem(
+            icon: Icons.dashboard,
+            label: 'Dashboard',
+            onTap: () {},
           ),
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            icon: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: GithubTheme.surface,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.calendar_month, size: 18),
-            ),
-            onPressed: () => _showBookAppointmentDialog(context, controller),
-            tooltip: 'Book Appointment',
+          GithubDrawerItem(
+            icon: Icons.person,
+            label: 'Profile',
+            onTap: () => Get.toNamed(AppRoutes.patientProfile),
           ),
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            icon: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: GithubTheme.surface,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.search, size: 18),
-            ),
-            onPressed: () => _showSearchDoctorsDialog(context, controller),
-            tooltip: 'Search Doctors',
+          GithubDrawerItem(
+            icon: Icons.calendar_month,
+            label: 'Book Appointment',
+            onTap: () => _showBookAppointmentDialog(context, controller),
           ),
-          IconButton(
-            padding: const EdgeInsets.all(8),
-            icon: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: GithubTheme.surface,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.report_problem_outlined, size: 18),
-            ),
-            onPressed: () => _showComplaintDialog(context, controller),
-            tooltip: 'Submit Complaint',
+          GithubDrawerItem(
+            icon: Icons.search,
+            label: 'Search Doctors',
+            onTap: () => _showSearchDoctorsDialog(context, controller),
           ),
-          PopupMenuButton<String>(
-            onSelected: (String value) {
-              if (value == 'logout') {
-                authController.logout();
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.logout, size: 20),
-                    SizedBox(width: 8),
-                    Text('Logout'),
-                  ],
-                ),
-              ),
-            ],
+          GithubDrawerItem(
+            icon: Icons.report_problem_outlined,
+            label: 'Submit Complaint',
+            onTap: () => _showComplaintDialog(context, controller),
+          ),
+          GithubDrawerItem(
+            icon: Icons.settings,
+            label: 'Settings',
+            onTap: () => Get.toNamed(AppRoutes.patientSettings),
+          ),
+          GithubDrawerItem(
+            icon: Icons.info_outline,
+            label: 'About',
+            onTap: () => Get.toNamed(AppRoutes.about),
+          ),
+          GithubDrawerItem(
+            icon: Icons.logout,
+            label: 'Logout',
+            onTap: () => authController.logout(),
           ),
         ],
       ),
@@ -499,79 +468,188 @@ class PatientDashboardView extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Search Doctors'),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(18)),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+          title: const Row(
+            children: <Widget>[
+              Icon(Icons.search, color: GithubTheme.primary),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Search Doctors',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                // ignore: prefer_const_constructors
                 TextField(
                   controller: controller.searchController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Search by name or specialty',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(16)),
+                    ),
+                    filled: true,
+                    fillColor: GithubTheme.surface,
                   ),
                   onChanged: (String value) => controller.searchDoctors(value),
                 ),
                 const SizedBox(height: 16),
                 Obx(() {
                   if (controller.filteredDoctors.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text('No doctors found.'),
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 32,
+                        horizontal: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: GithubTheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        'No doctors found. Try another name or specialty.',
+                        style: TextStyle(color: GithubTheme.textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
                     );
                   }
-                  return SizedBox(
-                    height: 300,
-                    child: ListView.builder(
-                      itemCount: controller.filteredDoctors.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final DoctorOption doctor =
-                            controller.filteredDoctors[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: GithubTheme.secondary,
-                            child: Text(
-                              doctor.name.isNotEmpty
-                                  ? doctor.name[0].toUpperCase()
-                                  : 'D',
-                            ),
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          '${controller.filteredDoctors.length} doctors found',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: GithubTheme.textSecondary,
                           ),
-                          title: Text(doctor.name),
-                          subtitle: Text(doctor.specialty ?? 'General'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Get.back();
-                                  Get.toNamed(
-                                    AppRoutes.publicProfile,
-                                    arguments: <String, dynamic>{'id': doctor.id},
-                                  );
-                                },
-                                child: const Text('View'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 320,
+                        child: ListView.separated(
+                          itemCount: controller.filteredDoctors.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          itemBuilder: (BuildContext context, int index) {
+                            final DoctorOption doctor =
+                                controller.filteredDoctors[index];
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              const SizedBox(width: 8),
-                              FilledButton(
-                                onPressed: () {
-                                  Get.back();
-                                  controller.sendConsultationRequest(doctor.id);
-                                },
-                                child: const Text('Request'),
+                              elevation: 1,
+                              color: GithubTheme.surface,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                leading: CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor:
+                                      GithubTheme.primary.withValues(alpha: 0.16),
+                                  backgroundImage: doctor.avatarUrl != null
+                                      ? NetworkImage(doctor.avatarUrl!)
+                                      : null,
+                                  child: doctor.avatarUrl == null
+                                      ? Text(
+                                          doctor.name.isNotEmpty
+                                              ? doctor.name[0].toUpperCase()
+                                              : 'D',
+                                          style: const TextStyle(
+                                            color: GithubTheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                title: Text(
+                                  doctor.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  doctor.specialty ?? 'General',
+                                  style: const TextStyle(
+                                    color: GithubTheme.textSecondary,
+                                  ),
+                                ),
+                                trailing: SizedBox(
+                                  width: 92,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          visualDensity: VisualDensity.compact,
+                                          minimumSize: const Size(72, 28),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          Get.back();
+                                          Get.toNamed(
+                                            AppRoutes.publicProfile,
+                                            arguments: <String, dynamic>{
+                                              'id': doctor.id,
+                                            },
+                                          );
+                                        },
+                                        child: const Text('View'),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      FilledButton(
+                                        style: FilledButton.styleFrom(
+                                          minimumSize: const Size(72, 28),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          Get.back();
+                                          controller.sendConsultationRequest(doctor.id);
+                                        },
+                                        child: const Text('Request'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 }),
               ],
             ),
           ),
           actions: <Widget>[
-            TextButton(onPressed: () => Get.back(), child: const Text('Close')),
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Close'),
+            ),
           ],
         );
       },
@@ -814,7 +892,9 @@ class _QuickActionCard extends StatelessWidget {
       color: GithubTheme.surface,
       elevation: 2,
       shadowColor: color.withValues(alpha: 0.08),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -885,7 +965,9 @@ class _AppointmentCard extends StatelessWidget {
       color: GithubTheme.surface,
       elevation: 2,
       shadowColor: GithubTheme.primary.withValues(alpha: 0.08),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -893,25 +975,24 @@ class _AppointmentCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: <Widget>[
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: GithubTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    appointment.doctor.isNotEmpty
-                        ? appointment.doctor[0].toUpperCase()
-                        : 'D',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: GithubTheme.primary.withValues(alpha: 0.16),
+                backgroundImage: appointment.doctorAvatarUrl != null
+                    ? NetworkImage(appointment.doctorAvatarUrl!)
+                    : null,
+                child: appointment.doctorAvatarUrl == null
+                    ? Text(
+                        appointment.doctor.isNotEmpty
+                            ? appointment.doctor[0].toUpperCase()
+                            : 'D',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -936,9 +1017,9 @@ class _AppointmentCard extends StatelessWidget {
                               horizontal: 8,
                               vertical: 4,
                             ),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: GithubTheme.primary,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.all(Radius.circular(12)),
                             ),
                             child: Text(
                               unreadCount > 99 ? '99+' : unreadCount.toString(),
@@ -987,7 +1068,7 @@ class _AppointmentCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: statusColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: const BorderRadius.all(Radius.circular(10)),
                             ),
                             child: Text(
                               statusText,

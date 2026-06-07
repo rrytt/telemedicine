@@ -29,3 +29,6 @@ Notes / Troubleshooting:
 - If your `profiles` table has other NOT NULL columns, include them in the `upsert` payload from the app or alter the column to accept NULL.
 - Adjust policies if you want admins to read/modify all profiles.
 - For public profile images (no auth required), set bucket public, but be cautious about privacy.
+to do 
+3.admin and doctor dashporad
+6google login

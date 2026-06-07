@@ -42,6 +42,8 @@ create table if not exists public.appointments (
   scheduled_at timestamptz not null,
   status text not null default 'pending',
   is_urgent boolean not null default false,
+  patient_deleted boolean not null default false,
+  doctor_deleted boolean not null default false,
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

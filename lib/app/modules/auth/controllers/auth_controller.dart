@@ -417,6 +417,18 @@ class AuthController extends GetxController {
     Get.offAllNamed(AppRoutes.login);
   }
 
+  void handleResetPassword() {
+    sendPasswordResetLink();
+  }
+
+  void handleFingerprintLogin() {
+    Get.snackbar(
+      'Feature Coming Soon',
+      'Biometric login (fingerprint & face recognition) will be available soon.',
+      duration: const Duration(seconds: 3),
+    );
+  }
+
   @override
   void onClose() {
     passwordController.removeListener(_handlePasswordChanged);

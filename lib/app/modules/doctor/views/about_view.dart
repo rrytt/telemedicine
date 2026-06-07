@@ -59,7 +59,7 @@ class _AboutViewState extends State<AboutView> {
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: GithubTheme.heroGradient,
                   ),
@@ -88,7 +88,7 @@ class _AboutViewState extends State<AboutView> {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'A comprehensive telemedicine platform connecting patients with healthcare professionals through secure video calls and messaging.',
+                  'A patient-friendly telemedicine platform that connects you with trusted healthcare professionals through secure video visits and messaging.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,

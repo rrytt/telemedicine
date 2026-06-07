@@ -56,7 +56,27 @@ class _ChatViewState extends State<ChatView> {
     return Scaffold(
       backgroundColor: GithubTheme.bg,
       appBar: AppBar(
-        title: Text('Chat with ${appointment!.doctor}'),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: GithubTheme.secondary,
+              backgroundImage: appointment!.doctorAvatarUrl != null
+                  ? NetworkImage(appointment!.doctorAvatarUrl!)
+                  : null,
+              child: appointment!.doctorAvatarUrl == null
+                  ? Text(
+                      appointment!.doctor.isNotEmpty
+                          ? appointment!.doctor[0].toUpperCase()
+                          : 'D',
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text('Chat with ${appointment!.doctor}')),
+          ],
+        ),
         elevation: 0,
         backgroundColor: GithubTheme.surface,
         foregroundColor: GithubTheme.textPrimary,

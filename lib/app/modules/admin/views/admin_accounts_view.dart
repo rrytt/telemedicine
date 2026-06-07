@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../auth/controllers/auth_controller.dart';
+import '../../../routes/app_pages.dart';
 import '../../../shared/widgets/github_widgets.dart';
 import '../../../theme/github_theme.dart';
 import '../controllers/admin_controller.dart';
@@ -21,6 +22,31 @@ class AdminAccountsView extends StatelessWidget {
       appBar: GithubTopBar(
         title: 'Accounts Management',
         onLogout: authController.logout,
+      ),
+      drawer: GithubDrawer(
+        menuTitle: 'Admin Menu',
+        items: <GithubDrawerItem>[
+          GithubDrawerItem(
+            icon: Icons.dashboard,
+            label: 'Dashboard',
+            onTap: () => Get.toNamed(AppRoutes.admin),
+          ),
+          GithubDrawerItem(
+            icon: Icons.person_outline,
+            label: 'Accounts',
+            onTap: () {},
+          ),
+          GithubDrawerItem(
+            icon: Icons.report_outlined,
+            label: 'Complaints',
+            onTap: () => Get.toNamed(AppRoutes.adminComplaints),
+          ),
+          GithubDrawerItem(
+            icon: Icons.logout,
+            label: 'Logout',
+            onTap: () => authController.logout(),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

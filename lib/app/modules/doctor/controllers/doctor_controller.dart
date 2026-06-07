@@ -14,6 +14,7 @@ class DoctorPatientItem {
     required this.name,
     required this.state,
     required this.scheduledAt,
+    this.avatarUrl,
   });
 
   final String appointmentId;
@@ -21,6 +22,7 @@ class DoctorPatientItem {
   final String name;
   final String state;
   final String scheduledAt;
+  final String? avatarUrl;
 
   bool get canChat => state == 'Accepted' || state == 'Completed';
   bool get isPending => state == 'Pending';
@@ -102,6 +104,7 @@ class DoctorController extends GetxController {
   String get selectedPatientName => selectedItem?.name ?? 'No patient';
   String get selectedAppointmentId => selectedItem?.appointmentId ?? '';
   String get selectedPatientId => selectedItem?.patientId ?? '';
+  String? get selectedPatientAvatarUrl => selectedItem?.avatarUrl;
   bool get canReplyToSelectedPatient => selectedItem?.canChat ?? false;
   bool get canStartVideoCall => selectedItem?.canChat ?? false;
   String? get _currentUserId => SupabaseService.client.auth.currentUser?.id;
@@ -110,6 +113,17 @@ class DoctorController extends GetxController {
 
   int unreadForAppointment(String appointmentId) =>
       unreadCountsByAppointment[appointmentId] ?? 0;
+
+  Future<String> _createSignedAvatarUrl(String path) async {
+    try {
+      final String signedUrl = await SupabaseService.client.storage
+          .from('avatars')
+          .createSignedUrl(path, 3600);
+      return signedUrl;
+    } catch (_) {
+      return '';
+    }
+  }
 
   String formatMessageTime(DateTime? value) {
     if (value == null) {
@@ -230,27 +244,37 @@ class DoctorController extends GetxController {
       final List<dynamic> response = await SupabaseService.client
           .from('appointments')
           .select(
-            'id, patient_id, status, scheduled_at, patient:patient_id(full_name)',
+            'id, patient_id, status, scheduled_at, patient:patient_id(full_name, avatar_url)',
           )
           .eq('doctor_id', doctorId)
+          .eq('doctor_deleted', false)
           .order('scheduled_at', ascending: true)
           .limit(50);
 
-      final List<DoctorPatientItem> rows = response.map((dynamic row) {
-        final Map<String, dynamic> map = row as Map<String, dynamic>;
-        final Map<String, dynamic>? patient =
-            map['patient'] as Map<String, dynamic>?;
+      final List<DoctorPatientItem> rows = await Future.wait(
+        response.map<Future<DoctorPatientItem>>(
+          (dynamic row) async {
+            final Map<String, dynamic> map = row as Map<String, dynamic>;
+            final Map<String, dynamic>? patient =
+                map['patient'] as Map<String, dynamic>?;
+            final String avatarPath = patient?['avatar_url']?.toString() ?? '';
+            final String avatarUrl = avatarPath.isNotEmpty
+                ? await _createSignedAvatarUrl(avatarPath)
+                : '';
 
-        return DoctorPatientItem(
-          appointmentId: map['id']?.toString() ?? '',
-          patientId: map['patient_id']?.toString() ?? '',
-          name: (patient?['full_name']?.toString().isNotEmpty ?? false)
-              ? patient!['full_name'].toString()
-              : 'Patient',
-          state: map['status']?.toString() ?? 'Pending',
-          scheduledAt: _formatDate(map['scheduled_at']?.toString()),
-        );
-      }).toList();
+            return DoctorPatientItem(
+              appointmentId: map['id']?.toString() ?? '',
+              patientId: map['patient_id']?.toString() ?? '',
+              name: (patient?['full_name']?.toString().isNotEmpty ?? false)
+                  ? patient!['full_name'].toString()
+                  : 'Patient',
+              state: map['status']?.toString() ?? 'Pending',
+              scheduledAt: _formatDate(map['scheduled_at']?.toString()),
+              avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+            );
+          },
+        ),
+      );
 
       queue.assignAll(rows);
       if (rows.isNotEmpty) {
@@ -670,6 +694,137 @@ class DoctorController extends GetxController {
       isRejecting.value = false;
       processingAppointmentId.value = '';
     }
+  }
+  
+  Future<void> hideAppointment(int index) async {
+    if (index < 0 || index >= queue.length) {
+      return;
+    }
+    selectedIndex.value = index;
+    await hideSelectedAppointment();
+  }
+
+  Future<void> hideSelectedAppointment() async {
+    if (!SupabaseService.isConfigured || selectedAppointmentId.isEmpty) {
+      return;
+    }
+
+    final String appointmentId = selectedAppointmentId;
+    final String? doctorId = _currentUserId;
+    if (doctorId == null) {
+      Get.snackbar('Error', 'User session is missing.');
+      return;
+    }
+
+    try {
+      isLoadingQueue.value = true;
+      final Map<String, dynamic>? appointment = await SupabaseService.client
+          .from('appointments')
+          .select('id, patient_id, doctor_id, patient_deleted, doctor_deleted')
+          .eq('id', appointmentId)
+          .maybeSingle();
+
+      if (appointment == null) {
+        Get.snackbar('Error', 'Appointment was not found.');
+        return;
+      }
+
+      final String rowPatientId = appointment['patient_id']?.toString() ?? '';
+      final String rowDoctorId = appointment['doctor_id']?.toString() ?? '';
+      final bool patientDeleted = appointment['patient_deleted'] == true;
+      final bool doctorDeleted = appointment['doctor_deleted'] == true;
+
+      if (rowDoctorId != doctorId) {
+        Get.snackbar('Error', 'You can only remove your own appointment records.');
+        return;
+      }
+
+      if (doctorDeleted) {
+        Get.snackbar('Info', 'This appointment is already removed from your list.');
+        return;
+      }
+
+      if (patientDeleted) {
+        await _removeAppointmentResources(appointmentId, rowPatientId, rowDoctorId);
+        Get.snackbar(
+          'Deleted',
+          'Appointment removed permanently after both sides deleted it.',
+        );
+      } else {
+        await SupabaseService.client
+            .from('appointments')
+            .update(<String, dynamic>{'doctor_deleted': true})
+            .eq('id', appointmentId)
+            .eq('doctor_id', doctorId);
+        Get.snackbar(
+          'Removed',
+          'Appointment removed from your list. The patient can still access it until they also remove it.',
+        );
+      }
+    } catch (_) {
+      Get.snackbar('Error', 'Failed to remove appointment.');
+    } finally {
+      await loadQueue();
+      isLoadingQueue.value = false;
+    }
+  }
+
+  Future<void> _removeAppointmentResources(
+    String appointmentId,
+    String patientId,
+    String doctorId,
+  ) async {
+    final List<String> prefixes = <String>[
+      '$patientId/$appointmentId',
+      '$doctorId/$appointmentId',
+    ];
+
+    for (final String prefix in prefixes) {
+      try {
+        final List<dynamic> storedFiles = await SupabaseService.client.storage
+            .from('medical-files')
+            .list(path: prefix);
+        if (storedFiles.isNotEmpty) {
+          final List<String> removePaths = storedFiles
+              .map((dynamic item) => item['name']?.toString())
+              .whereType<String>()
+              .map((String name) => '$prefix/$name')
+              .toList();
+          if (removePaths.isNotEmpty) {
+            await SupabaseService.client.storage
+                .from('medical-files')
+                .remove(removePaths);
+          }
+        }
+      } catch (_) {
+        // Ignore storage cleanup errors and continue.
+      }
+    }
+
+    for (final String prefix in prefixes) {
+      try {
+        await SupabaseService.client
+            .from('medical_files')
+            .delete()
+            .like('file_path', '$prefix/%');
+      } catch (_) {
+        // Ignore cleanup failures and continue.
+      }
+    }
+
+    try {
+      await SupabaseService.client
+          .from('chat_messages')
+          .delete()
+          .eq('appointment_id', appointmentId);
+    } catch (_) {
+      // Continue even if chat cleanup fails.
+    }
+
+    await SupabaseService.client
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentId);
   }
 
   Future<void> closeCurrentSession() async {

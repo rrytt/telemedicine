@@ -137,7 +137,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                   children: <Widget>[
                     CircleAvatar(
                       radius: 36,
-                      backgroundColor: Colors.white.withOpacity(0.18),
+                      backgroundColor: Colors.white.withValues(alpha: 0.18),
                       backgroundImage: avatarUrl.isNotEmpty
                           ? NetworkImage(avatarUrl)
                           : null,
