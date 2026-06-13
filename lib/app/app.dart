@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'modules/admin/views/admin_accounts_view.dart';
+import 'modules/admin/views/admin_admins_view.dart';
 import 'modules/admin/views/admin_complaints_view.dart';
 import 'modules/admin/views/admin_dashboard_view.dart';
+import 'modules/admin/views/admin_doctors_view.dart';
+import 'modules/admin/views/admin_patients_view.dart';
+import 'modules/admin/views/admin_posts_view.dart';
+import 'modules/admin/views/admin_reviews_view.dart';
 import 'modules/auth/views/account_type_view.dart';
 import 'modules/auth/views/login_view.dart';
 import 'modules/auth/views/admin_login_view.dart';
 import 'modules/auth/views/startup_view.dart';
 import 'modules/call/views/agora_call_view.dart';
 import 'modules/doctor/views/doctor_chat_view.dart';
+import 'modules/doctor/views/doctor_appointments_view.dart';
 import 'modules/doctor/views/doctor_dashboard_view.dart';
 import 'modules/doctor/views/settings_view.dart';
 import 'modules/doctor/views/two_factor_view.dart';
@@ -18,11 +24,13 @@ import 'modules/doctor/views/terms_of_service_view.dart';
 import 'modules/doctor/views/privacy_policy_view.dart';
 import 'modules/doctor/views/about_view.dart';
 import 'modules/patient/views/chat_view.dart';
+import 'modules/patient/views/doctor_search_view.dart';
 import 'modules/patient/views/patient_dashboard_view.dart';
 import 'modules/patient/views/patient_profile_view.dart';
 import 'modules/patient/views/patient_settings_view.dart';
 import 'modules/profile/views/doctor_profile_view.dart';
 import 'modules/profile/views/public_profile_view.dart';
+import 'routes/image_viewer_view.dart';
 import 'routes/app_pages.dart';
 import 'theme/github_theme.dart';
 import 'theme/theme_controller.dart';
@@ -66,6 +74,10 @@ class TelemedicineApp extends StatelessWidget {
             page: () => const PatientProfileView(),
           ),
           GetPage<dynamic>(
+            name: AppRoutes.doctorSearch,
+            page: () => const DoctorSearchView(),
+          ),
+          GetPage<dynamic>(
             name: AppRoutes.doctorProfile,
             page: () => const DoctorProfileView(),
           ),
@@ -91,6 +103,26 @@ class TelemedicineApp extends StatelessWidget {
             page: () => const AdminComplaintsView(),
           ),
           GetPage<dynamic>(
+            name: AppRoutes.adminPatients,
+            page: () => const AdminPatientsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.adminDoctors,
+            page: () => const AdminDoctorsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.adminAdmins,
+            page: () => const AdminAdminsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.adminPosts,
+            page: () => const AdminPostsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.adminReviews,
+            page: () => const AdminReviewsView(),
+          ),
+          GetPage<dynamic>(
             name: AppRoutes.call,
             page: () => const AgoraCallView(),
           ),
@@ -98,6 +130,11 @@ class TelemedicineApp extends StatelessWidget {
           GetPage<dynamic>(
             name: AppRoutes.doctorChat,
             page: () => const DoctorChatView(),
+            binding: DoctorBinding(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.doctorAppointments,
+            page: () => const DoctorAppointmentsView(),
             binding: DoctorBinding(),
           ),
           GetPage<dynamic>(
@@ -127,6 +164,10 @@ class TelemedicineApp extends StatelessWidget {
           GetPage<dynamic>(
             name: AppRoutes.about,
             page: () => const AboutView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.imageViewer,
+            page: () => const ImageViewerView(),
           ),
         ],
       );

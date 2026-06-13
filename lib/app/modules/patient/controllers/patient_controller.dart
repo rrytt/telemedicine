@@ -319,7 +319,8 @@ class PatientController extends GetxController {
     }
   }
 
-  Future<String> _createSignedAvatarUrl(String path) async {
+  /// Public wrapper used by DoctorPostsController to sign avatar URLs.
+  Future<String> createSignedAvatarUrl(String path) async {
     try {
       final String signedUrl = await SupabaseService.client.storage
           .from('avatars')
@@ -329,6 +330,13 @@ class PatientController extends GetxController {
       return '';
     }
   }
+
+  // Backward-compatible alias for older/older references in the codebase.
+  Future<String> _createSignedAvatarUrl(String path) =>
+      createSignedAvatarUrl(path);
+
+
+
 
   Future<void> bookAppointment() async {
     bookingError.value = '';

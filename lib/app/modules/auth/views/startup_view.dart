@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../theme/github_theme.dart';
 import '../controllers/auth_controller.dart';
 
 class StartupView extends StatefulWidget {
@@ -15,6 +14,11 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+
+  static const Color _navy = Color(0xFF1E3A5F);
+  static const Color _gradientStart = Color(0xFFEFF3FC);
+  static const Color _gradientMid = Color(0xFFD9E2EF);
+  static const Color _gradientEnd = Color(0xFFC9D5E8);
 
   @override
   void initState() {
@@ -57,7 +61,12 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: GithubTheme.startupBackgroundGradient,
+          gradient: RadialGradient(
+            center: Alignment.topLeft,
+            radius: 1.2,
+            colors: [_gradientStart, _gradientMid, _gradientEnd],
+            stops: [0.0, 0.6, 1.0],
+          ),
         ),
         child: SafeArea(
           child: Center(
@@ -68,55 +77,51 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    // Medical Icon with glow effect
                     Container(
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: _navy.withValues(alpha: 0.1),
                         boxShadow: <BoxShadow>[
                           BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: _navy.withValues(alpha: 0.15),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.local_hospital,
                         size: 60,
-                        color: Colors.white,
+                        color: _navy.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // App Title
                     const Text(
                       'Telemedicine',
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: _navy,
                         letterSpacing: 1.2,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Tagline
                     Text(
                       'Your Health, Our Priority',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: _navy.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w300,
                         letterSpacing: 0.5,
                       ),
                     ),
                     const SizedBox(height: 48),
-                    // Loading indicator with medical theme
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: _navy.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -125,7 +130,7 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                             width: 32,
                             height: 32,
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(_navy),
                               strokeWidth: 3,
                             ),
                           ),
@@ -133,7 +138,7 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                           Text(
                             'Initializing...',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
+                              color: _navy.withValues(alpha: 0.7),
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -142,11 +147,10 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // Version info
                     Text(
                       'Version 1.0.0',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: _navy.withValues(alpha: 0.4),
                         fontSize: 12,
                       ),
                     ),
@@ -160,4 +164,3 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
     );
   }
 }
-

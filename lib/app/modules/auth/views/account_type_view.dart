@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../theme/github_theme.dart';
 import '../controllers/auth_controller.dart';
+
+const Color _navy = Color(0xFF1E3A5F);
+const Color _blue = Color(0xFF3B82F6);
+const Color _green = Color(0xFF10B981);
+const Color _amber = Color(0xFFFEA500);
+const Color _slate = Color(0xFF5C6F87);
+const Color _border = Color(0xFFE2E8F0);
 
 class AccountTypeView extends GetView<AuthController> {
   const AccountTypeView({super.key});
@@ -14,13 +20,11 @@ class AccountTypeView extends GetView<AuthController> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              GithubTheme.bg,
-              GithubTheme.bgAlt,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            center: Alignment.topLeft,
+            radius: 1.2,
+            colors: [Color(0xFFEFF3FC), Color(0xFFD9E2EF), Color(0xFFC9D5E8)],
+            stops: [0.0, 0.6, 1.0],
           ),
         ),
         child: SafeArea(
@@ -31,61 +35,66 @@ class AccountTypeView extends GetView<AuthController> {
                 constraints: const BoxConstraints(maxWidth: 800),
                 child: Column(
                   children: <Widget>[
-                    // Header Section
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: GithubTheme.surface,
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(32),
                         boxShadow: <BoxShadow>[
                           BoxShadow(
-                            color: GithubTheme.primary.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 30,
+                            offset: const Offset(0, 12),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            blurRadius: 4,
+                            offset: const Offset(0, -1),
                           ),
                         ],
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          width: 1.2,
+                        ),
                       ),
                       child: Column(
                         children: <Widget>[
-                          // Logo/Icon
                           Container(
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              gradient: GithubTheme.primaryGradient,
+                              color: _navy.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                               boxShadow: <BoxShadow>[
                                 BoxShadow(
-                                  color: GithubTheme.primary.withValues(alpha: 0.3),
+                                  color: _navy.withValues(alpha: 0.2),
                                   blurRadius: 15,
                                   offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.local_hospital,
-                              color: Colors.white,
+                              color: _navy.withValues(alpha: 0.7),
                               size: 40,
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // Title
                           const Text(
                             'Welcome to Telemedicine',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: GithubTheme.textPrimary,
+                              color: _navy,
                             ),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 12),
-                          // Subtitle
                           const Text(
                             'Choose your account type to get started with secure healthcare communication.',
                             style: TextStyle(
                               fontSize: 16,
-                              color: GithubTheme.textSecondary,
+                              color: _slate,
                               height: 1.5,
                             ),
                             textAlign: TextAlign.center,
@@ -93,89 +102,59 @@ class AccountTypeView extends GetView<AuthController> {
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 32),
-
-                    // Status Card
+                    const SizedBox(height: 20),
                     if (!configured)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: GithubTheme.warning.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: GithubTheme.warning.withValues(alpha: 0.3),
-                          ),
+                          color: _amber.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: _amber.withValues(alpha: 0.3)),
                         ),
                         child: const Row(
                           children: <Widget>[
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: GithubTheme.warning,
-                              size: 24,
-                            ),
+                            Icon(Icons.warning_amber_rounded, color: _amber, size: 24),
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'Supabase not configured yet. Run with --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...',
-                                style: TextStyle(
-                                  color: GithubTheme.warning,
-                                  fontSize: 14,
-                                ),
+                                style: TextStyle(color: _amber, fontSize: 14),
                               ),
                             ),
                           ],
                         ),
                       ),
-
                     if (configured)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: GithubTheme.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: GithubTheme.success.withValues(alpha: 0.3),
-                          ),
+                          color: _green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: _green.withValues(alpha: 0.3)),
                         ),
                         child: const Row(
                           children: <Widget>[
-                            Icon(
-                              Icons.check_circle,
-                              color: GithubTheme.success,
-                              size: 24,
-                            ),
+                            Icon(Icons.check_circle, color: _green, size: 24),
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 'Supabase connected successfully.',
-                                style: TextStyle(
-                                  color: GithubTheme.success,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: TextStyle(color: _green, fontSize: 14, fontWeight: FontWeight.w500),
                               ),
                             ),
                           ],
                         ),
                       ),
-
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
                         'Doctor accounts are created and managed by the admin only. Please register here as a patient or ask your administrator for access.',
-                        style: TextStyle(
-                          color: GithubTheme.textSecondary,
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
+                        style: TextStyle(color: _slate, fontSize: 14, height: 1.5),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Account Type Cards
                     LayoutBuilder(
                       builder: (BuildContext context, BoxConstraints constraints) {
                         final bool isWide = constraints.maxWidth > 600;
@@ -190,7 +169,7 @@ class AccountTypeView extends GetView<AuthController> {
                                 title: 'Patient Account',
                                 subtitle: 'Book appointments, chat with doctors, and join secure video calls.',
                                 icon: Icons.person_outline,
-                                color: GithubTheme.primary,
+                                color: _blue,
                                 features: const <String>[
                                   'Schedule appointments',
                                   'Secure messaging',
@@ -206,7 +185,7 @@ class AccountTypeView extends GetView<AuthController> {
                                 title: 'Doctor Login',
                                 subtitle: 'Sign in with your doctor account. Registration is managed by the admin.',
                                 icon: Icons.medical_services_outlined,
-                                color: GithubTheme.secondary,
+                                color: _green,
                                 features: const <String>[
                                   'Secure doctor login',
                                   'Patient consultation tools',
@@ -222,7 +201,7 @@ class AccountTypeView extends GetView<AuthController> {
                                 title: 'Admin Account',
                                 subtitle: 'Manage system access, users, and platform operations.',
                                 icon: Icons.admin_panel_settings_outlined,
-                                color: GithubTheme.accent,
+                                color: _amber,
                                 features: const <String>[
                                   'User management',
                                   'System monitoring',
@@ -237,17 +216,10 @@ class AccountTypeView extends GetView<AuthController> {
                         );
                       },
                     ),
-
                     const SizedBox(height: 48),
-
-                    // Footer
                     const Text(
-                      'Secure • Private • HIPAA Compliant',
-                      style: TextStyle(
-                        color: GithubTheme.textMuted,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      'Secure . Private . HIPAA Compliant',
+                      style: TextStyle(color: _slate, fontSize: 14, fontWeight: FontWeight.w500),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -282,139 +254,112 @@ class _AccountTypeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shadowColor: color.withValues(alpha: 0.2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-              width: 1,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // Header
-              Row(
-                children: <Widget>[
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+        ],
+        border: Border.all(color: _border.withValues(alpha: 0.5), width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(icon, color: color, size: 26),
                     ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: GithubTheme.textPrimary,
-                          ),
-                        ),
-                        if (isAdmin)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: GithubTheme.accent.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: _navy,
                             ),
-                            child: const Text(
-                              'Restricted Access',
-                              style: TextStyle(
-                                color: GithubTheme.accent,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                          ),
+                          if (isAdmin)
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: _amber.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Restricted Access',
+                                style: TextStyle(color: _amber, fontSize: 10, fontWeight: FontWeight.w600),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Description
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: GithubTheme.textSecondary,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Features
-              ...features.map((String feature) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.check_circle,
-                      color: color,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      feature,
-                      style: const TextStyle(
-                        color: GithubTheme.textSecondary,
-                        fontSize: 13,
+                        ],
                       ),
                     ),
                   ],
                 ),
-              )),
-
-              const SizedBox(height: 20),
-
-              // Action Button
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: onTap,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: color,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                const SizedBox(height: 16),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: _slate, fontSize: 14, height: 1.4),
+                ),
+                const SizedBox(height: 20),
+                ...features.map((String feature) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(Icons.check_circle, color: color, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        feature,
+                        style: const TextStyle(color: _slate, fontSize: 13),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'Continue as ${title.split(' ')[0]}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                )),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _navy,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shadowColor: _navy.withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(
+                      'Continue as ${title.split(' ')[0]}',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

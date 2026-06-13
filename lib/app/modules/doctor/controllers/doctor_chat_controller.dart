@@ -7,6 +7,7 @@ import '../../../core/supabase/supabase_service.dart';
 
 class DoctorChatController extends GetxController {
   final TextEditingController messageController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
   String patientName = 'Patient';
   String appointmentId = '';
   String patientId = '';
@@ -32,6 +33,7 @@ class DoctorChatController extends GetxController {
   @override
   void onClose() {
     messageController.dispose();
+    scrollController.dispose();
     _messagesSubscription?.cancel();
     super.onClose();
   }
@@ -47,6 +49,19 @@ class DoctorChatController extends GetxController {
         .listen((data) {
       messages.assignAll(data);
       _markAsSeen();
+      _scrollToBottom();
+    });
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 

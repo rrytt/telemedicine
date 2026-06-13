@@ -11,6 +11,11 @@ class AppRoutes {
   static const String admin = '/admin';
   static const String adminAccounts = '/admin/accounts';
   static const String adminComplaints = '/admin/complaints';
+  static const String adminPatients = '/admin/patients';
+  static const String adminDoctors = '/admin/doctors';
+  static const String adminAdmins = '/admin/admins';
+  static const String adminPosts = '/admin/posts';
+  static const String adminReviews = '/admin/reviews';
   static const String call = '/call';
   static const String chat = '/chat';
   static const String doctorChat = '/doctor-chat';
@@ -22,4 +27,6 @@ class AppRoutes {
   static const String privacy = '/privacy';
   static const String about = '/about';
   static const String patientSettings = '/patient-settings';
+  static const String doctorAppointments = '/doctor-appointments';
+  static const String doctorSearch = '/doctor-search';
 }

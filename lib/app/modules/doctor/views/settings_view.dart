@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../theme/github_theme.dart';
 import '../../../theme/theme_controller.dart';
 import '../controllers/settings_controller.dart';
+import '../doctor_theme.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -13,281 +13,273 @@ class SettingsView extends StatelessWidget {
     final SettingsController settingsController = Get.put(SettingsController());
 
     return Scaffold(
-      backgroundColor: GithubTheme.bg,
+      backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: GithubTheme.surface,
-        foregroundColor: GithubTheme.textPrimary,
+        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // Theme Section
-          const Text(
-            'Appearance',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Theme',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Obx(() {
-                    return SegmentedButton<ThemeMode>(
-                      segments: const [
-                        ButtonSegment<ThemeMode>(
-                          value: ThemeMode.light,
-                          label: Text('Light'),
-                          icon: Icon(Icons.light_mode),
-                        ),
-                        ButtonSegment<ThemeMode>(
-                          value: ThemeMode.dark,
-                          label: Text('Dark'),
-                          icon: Icon(Icons.dark_mode),
-                        ),
-                        ButtonSegment<ThemeMode>(
-                          value: ThemeMode.system,
-                          label: Text('System'),
-                          icon: Icon(Icons.settings),
-                        ),
-                      ],
-                      selected: {themeController.themeMode.value},
-                      onSelectionChanged: (Set<ThemeMode> selection) {
-                        if (selection.isNotEmpty) {
-                          themeController.setThemeMode(selection.first);
-                        }
-                      },
-                      multiSelectionEnabled: false,
-                    );
-                  }),
-                ],
+      body: Stack(
+        children: <Widget>[
+          Container(decoration: DoctorStyles.backgroundGradient),
+          ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              const Text(
+                'Appearance',
+                style: DoctorStyles.sectionHeader,
               ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Notifications Section
-          const Text(
-            'Notifications',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              children: [
-                Obx(
-                  () => SwitchListTile(
-                    title: const Text('Appointment Requests'),
-                    subtitle: const Text(
-                      'Get notified when patients request appointments',
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: DoctorStyles.glassCard,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Theme',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: DoctorStyles.textPrimary),
                     ),
-                    value: settingsController
-                        .appointmentRequestsNotification
-                        .value,
-                    onChanged: settingsController
-                        .toggleAppointmentRequestsNotification,
-                  ),
+                    const SizedBox(height: 8),
+                    Obx(() {
+                      return SegmentedButton<ThemeMode>(
+                        segments: const [
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.light,
+                            label: Text('Light'),
+                            icon: Icon(Icons.light_mode),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.dark,
+                            label: Text('Dark'),
+                            icon: Icon(Icons.dark_mode),
+                          ),
+                          ButtonSegment<ThemeMode>(
+                            value: ThemeMode.system,
+                            label: Text('System'),
+                            icon: Icon(Icons.settings),
+                          ),
+                        ],
+                        selected: {themeController.themeMode.value},
+                        onSelectionChanged: (Set<ThemeMode> selection) {
+                          if (selection.isNotEmpty) {
+                            themeController.setThemeMode(selection.first);
+                          }
+                        },
+                        multiSelectionEnabled: false,
+                      );
+                    }),
+                  ],
                 ),
-                const Divider(),
-                Obx(
-                  () => SwitchListTile(
-                    title: const Text('New Messages'),
-                    subtitle: const Text(
-                      'Get notified when patients send messages',
+              ),
+
+              const SizedBox(height: 24),
+
+              const Text(
+                'Notifications',
+                style: DoctorStyles.sectionHeader,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: DoctorStyles.glassCard,
+                child: Column(
+                  children: [
+                    Obx(
+                      () => SwitchListTile(
+                        title: const Text('Appointment Requests'),
+                        subtitle: const Text(
+                          'Get notified when patients request appointments',
+                        ),
+                        value: settingsController
+                            .appointmentRequestsNotification
+                            .value,
+                        onChanged: settingsController
+                            .toggleAppointmentRequestsNotification,
+                      ),
                     ),
-                    value: settingsController.newMessagesNotification.value,
-                    onChanged: settingsController.toggleNewMessagesNotification,
-                  ),
-                ),
-                const Divider(),
-                Obx(
-                  () => SwitchListTile(
-                    title: const Text('Video Call Requests'),
-                    subtitle: const Text(
-                      'Get notified when patients request video calls',
+                    const Divider(),
+                    Obx(
+                      () => SwitchListTile(
+                        title: const Text('New Messages'),
+                        subtitle: const Text(
+                          'Get notified when patients send messages',
+                        ),
+                        value: settingsController.newMessagesNotification.value,
+                        onChanged: settingsController.toggleNewMessagesNotification,
+                      ),
                     ),
-                    value:
-                        settingsController.videoCallRequestsNotification.value,
-                    onChanged:
-                        settingsController.toggleVideoCallRequestsNotification,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Privacy Section
-          const Text(
-            'Privacy & Security',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.lock),
-                  title: const Text('Change Password'),
-                  subtitle: const Text('Update your account password'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showChangePasswordDialog(),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.security),
-                  title: const Text('Two-Factor Authentication'),
-                  subtitle: Obx(
-                    () => Text(
-                      settingsController.twoFactorEnabled.value
-                          ? 'Enabled for your account'
-                          : 'Add an extra layer of security',
+                    const Divider(),
+                    Obx(
+                      () => SwitchListTile(
+                        title: const Text('Video Call Requests'),
+                        subtitle: const Text(
+                          'Get notified when patients request video calls',
+                        ),
+                        value:
+                            settingsController.videoCallRequestsNotification.value,
+                        onChanged:
+                            settingsController.toggleVideoCallRequestsNotification,
+                      ),
                     ),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: settingsController.enable2FA,
+                  ],
                 ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.privacy_tip),
-                  title: const Text('Privacy Settings'),
-                  subtitle: const Text('Control your data and privacy'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showPrivacySettingsDialog(),
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-          // Account Section
-          const Text(
-            'Account',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Profile Information'),
-                  subtitle: const Text('Update your personal information'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showProfileDialog(),
+              const Text(
+                'Privacy & Security',
+                style: DoctorStyles.sectionHeader,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: DoctorStyles.glassCard,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.lock),
+                      title: const Text('Change Password'),
+                      subtitle: const Text('Update your account password'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showChangePasswordDialog(),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.security),
+                      title: const Text('Two-Factor Authentication'),
+                      subtitle: Obx(
+                        () => Text(
+                          settingsController.twoFactorEnabled.value
+                              ? 'Enabled for your account'
+                              : 'Add an extra layer of security',
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: settingsController.enable2FA,
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.privacy_tip),
+                      title: const Text('Privacy Settings'),
+                      subtitle: const Text('Control your data and privacy'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showPrivacySettingsDialog(),
+                    ),
+                  ],
                 ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.schedule),
-                  title: const Text('Working Hours'),
-                  subtitle: const Text('Set your availability schedule'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showWorkingHoursDialog(),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.medical_services),
-                  title: const Text('Specializations'),
-                  subtitle: const Text('Update your medical specializations'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showSpecializationsDialog(),
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-          // App Info Section
-          const Text(
-            'About',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              children: [
-                const ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('App Version'),
-                  subtitle: Text('1.0.0'),
+              const Text(
+                'Account',
+                style: DoctorStyles.sectionHeader,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: DoctorStyles.glassCard,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.person),
+                      title: const Text('Profile Information'),
+                      subtitle: const Text('Update your personal information'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showProfileDialog(),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.schedule),
+                      title: const Text('Working Hours'),
+                      subtitle: const Text('Set your availability schedule'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showWorkingHoursDialog(),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.medical_services),
+                      title: const Text('Specializations'),
+                      subtitle: const Text('Update your medical specializations'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showSpecializationsDialog(),
+                    ),
+                  ],
                 ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.help_outline),
-                  title: const Text('Help & Support'),
-                  subtitle: const Text(
-                    'Contact support if you need assistance',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: settingsController.openHelpSupport,
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.feedback),
-                  title: const Text('Send Feedback'),
-                  subtitle: const Text('Help us improve the app'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showFeedbackDialog(),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.description),
-                  title: const Text('Terms of Service'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: settingsController.openTermsOfService,
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.privacy_tip),
-                  title: const Text('Privacy Policy'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: settingsController.openPrivacyPolicy,
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('About'),
-                  subtitle: const Text('App information and version'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: settingsController.openAbout,
-                ),
-              ],
-            ),
-          ),
+              ),
 
-          const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              const Text(
+                'About',
+                style: DoctorStyles.sectionHeader,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: DoctorStyles.glassCard,
+                child: Column(
+                  children: [
+                    const ListTile(
+                      leading: Icon(Icons.info_outline),
+                      title: Text('App Version'),
+                      subtitle: Text('1.0.0'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.help_outline),
+                      title: const Text('Help & Support'),
+                      subtitle: const Text(
+                        'Contact support if you need assistance',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: settingsController.openHelpSupport,
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.feedback),
+                      title: const Text('Send Feedback'),
+                      subtitle: const Text('Help us improve the app'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => _showFeedbackDialog(),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.description),
+                      title: const Text('Terms of Service'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: settingsController.openTermsOfService,
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.privacy_tip),
+                      title: const Text('Privacy Policy'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: settingsController.openPrivacyPolicy,
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: const Text('About'),
+                      subtitle: const Text('App information and version'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: settingsController.openAbout,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
         ],
       ),
     );
@@ -309,27 +301,27 @@ class SettingsView extends StatelessWidget {
             TextField(
               controller: currentPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Current Password',
-                border: OutlineInputBorder(),
+              decoration: DoctorStyles.inputDecoration(
+                label: 'Current Password',
+                prefixIcon: const Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: newPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
+              decoration: DoctorStyles.inputDecoration(
+                label: 'New Password',
+                prefixIcon: const Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: confirmPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Confirm New Password',
-                border: OutlineInputBorder(),
+              decoration: DoctorStyles.inputDecoration(
+                label: 'Confirm New Password',
+                prefixIcon: const Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
               ),
             ),
           ],
@@ -337,6 +329,7 @@ class SettingsView extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
+            style: DoctorStyles.primaryButton,
             onPressed: () {
               final settingsController = Get.find<SettingsController>();
               if (newPasswordController.text ==
@@ -414,33 +407,33 @@ class SettingsView extends StatelessWidget {
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  border: OutlineInputBorder(),
+                decoration: DoctorStyles.inputDecoration(
+                  label: 'Full Name',
+                  prefixIcon: const Icon(Icons.person_outline, color: DoctorStyles.slateLight),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: specializationController,
-                decoration: const InputDecoration(
-                  labelText: 'Specialization',
-                  border: OutlineInputBorder(),
+                decoration: DoctorStyles.inputDecoration(
+                  label: 'Specialization',
+                  prefixIcon: const Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: licenseController,
-                decoration: const InputDecoration(
-                  labelText: 'License Number',
-                  border: OutlineInputBorder(),
+                decoration: DoctorStyles.inputDecoration(
+                  label: 'License Number',
+                  prefixIcon: const Icon(Icons.badge_outlined, color: DoctorStyles.slateLight),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: experienceController,
-                decoration: const InputDecoration(
-                  labelText: 'Years of Experience',
-                  border: OutlineInputBorder(),
+                decoration: DoctorStyles.inputDecoration(
+                  label: 'Years of Experience',
+                  prefixIcon: const Icon(Icons.timeline_outlined, color: DoctorStyles.slateLight),
                 ),
               ),
             ],
@@ -449,6 +442,7 @@ class SettingsView extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
+            style: DoctorStyles.primaryButton,
             onPressed: () {
               settingsController.updateProfile(
                 nameController.text,
@@ -477,15 +471,16 @@ class SettingsView extends StatelessWidget {
         content: TextField(
           controller: hoursController,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'Working Hours',
-            hintText: 'e.g., Mon-Fri: 9:00 AM - 5:00 PM',
-            border: OutlineInputBorder(),
+          decoration: DoctorStyles.inputDecoration(
+            label: 'Working Hours',
+            hint: 'e.g., Mon-Fri: 9:00 AM - 5:00 PM',
+            prefixIcon: const Icon(Icons.schedule, color: DoctorStyles.slateLight),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
+            style: DoctorStyles.primaryButton,
             onPressed: () {
               settingsController.updateWorkingHours(hoursController.text);
               Get.back();
@@ -508,15 +503,16 @@ class SettingsView extends StatelessWidget {
         content: TextField(
           controller: specializationController,
           maxLines: 2,
-          decoration: const InputDecoration(
-            labelText: 'Specializations',
-            hintText: 'e.g., Cardiology, Neurology',
-            border: OutlineInputBorder(),
+          decoration: DoctorStyles.inputDecoration(
+            label: 'Specializations',
+            hint: 'e.g., Cardiology, Neurology',
+            prefixIcon: const Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
+            style: DoctorStyles.primaryButton,
             onPressed: () {
               settingsController.updateProfile(
                 settingsController.doctorName.value,
@@ -542,15 +538,19 @@ class SettingsView extends StatelessWidget {
         content: TextField(
           controller: feedbackController,
           maxLines: 4,
-          decoration: const InputDecoration(
-            labelText: 'Your Feedback',
-            hintText: 'Tell us how we can improve...',
-            border: OutlineInputBorder(),
+          decoration: DoctorStyles.inputDecoration(
+            label: 'Your Feedback',
+            hint: 'Tell us how we can improve...',
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(bottom: 60),
+              child: Icon(Icons.feedback_outlined, color: DoctorStyles.slateLight),
+            ),
           ),
         ),
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
+            style: DoctorStyles.primaryButton,
             onPressed: () {
               final settingsController = Get.find<SettingsController>();
               settingsController.sendFeedback(feedbackController.text);

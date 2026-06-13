@@ -1,7 +1,12 @@
--- Telemedicine schema (Supabase)
+-- Telemedicine schema (consolidated)
 -- Run this script in Supabase SQL Editor.
+-- Includes all migrations: base schema + 001..004
 
 create extension if not exists pgcrypto;
+
+-- ============================================================
+-- ENUMS
+-- ============================================================
 
 create type public.app_role as enum ('patient', 'doctor');
 
@@ -18,6 +23,11 @@ begin
 end
 $$;
 
+-- ============================================================
+-- TABLES
+-- ============================================================
+
+-- Profiles (extends auth.users)
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
@@ -35,6 +45,7 @@ create table if not exists public.profiles (
 alter table public.profiles
   add column if not exists is_approved boolean not null default false;
 
+-- Appointments
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references public.profiles(id) on delete cascade,
@@ -51,6 +62,30 @@ create table if not exists public.appointments (
     check (status in ('pending', 'accepted', 'rejected', 'completed'))
 );
 
+-- Medical files
+create table if not exists public.medical_files (
+  id uuid primary key default gen_random_uuid(),
+  patient_id uuid not null references public.profiles(id) on delete cascade,
+  doctor_id uuid references public.profiles(id) on delete set null,
+  uploaded_by uuid not null references public.profiles(id) on delete cascade,
+  file_name text not null,
+  file_path text not null unique,
+  content_type text,
+  created_at timestamptz not null default now()
+);
+
+-- Clinical notes
+create table if not exists public.clinical_notes (
+  id uuid primary key default gen_random_uuid(),
+  appointment_id uuid not null references public.appointments(id) on delete cascade,
+  doctor_id uuid not null references public.profiles(id) on delete cascade,
+  patient_id uuid not null references public.profiles(id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Chat messages
 create table if not exists public.chat_messages (
   id uuid primary key default gen_random_uuid(),
   appointment_id uuid not null references public.appointments(id) on delete cascade,
@@ -59,19 +94,13 @@ create table if not exists public.chat_messages (
   attachment_path text,
   attachment_name text,
   attachment_type text,
+  delivery_status text not null default 'sent',
+  seen_at timestamptz,
   created_at timestamptz not null default now(),
   constraint chat_message_content_check check (
     message_text is not null or attachment_path is not null
   )
 );
-
-alter table public.chat_messages
-  add column if not exists delivery_status text not null default 'sent';
-
-alter table public.chat_messages
-  add column if not exists seen_at timestamptz;
-
-alter table public.chat_messages replica identity full;
 
 do $$
 begin
@@ -87,60 +116,9 @@ begin
 end
 $$;
 
--- تفعيل التحديث اللحظي بأمان (Fix for Error 42710)
-DO $$ 
-BEGIN
-    -- التأكد من وجود الـ Publication
-    IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-        CREATE PUBLICATION supabase_realtime;
-    END IF;
+alter table public.chat_messages replica identity full;
 
-    -- إضافة جدول المواعيد للـ Realtime
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'appointments'
-    ) THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
-    END IF;
-
-    -- إضافة جدول الرسائل للـ Realtime
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'chat_messages'
-    ) THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
-    END IF;
-
-    -- إضافة جدول البروفايل للـ Realtime لمتابعة حالة التفعيل فور حدوثها
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'profiles'
-    ) THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
-    END IF;
-END $$;
-
-create table if not exists public.medical_files (
-  id uuid primary key default gen_random_uuid(),
-  patient_id uuid not null references public.profiles(id) on delete cascade,
-  doctor_id uuid references public.profiles(id) on delete set null,
-  uploaded_by uuid not null references public.profiles(id) on delete cascade,
-  file_name text not null,
-  file_path text not null unique,
-  content_type text,
-  created_at timestamptz not null default now()
-);
-
-create table if not exists public.clinical_notes (
-  id uuid primary key default gen_random_uuid(),
-  appointment_id uuid not null references public.appointments(id) on delete cascade,
-  doctor_id uuid not null references public.profiles(id) on delete cascade,
-  patient_id uuid not null references public.profiles(id) on delete cascade,
-  body text not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
+-- Complaints
 create table if not exists public.complaints (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references public.profiles(id) on delete cascade,
@@ -154,6 +132,85 @@ create table if not exists public.complaints (
   constraint complaints_status_check check (status in ('open', 'in_review', 'resolved', 'rejected'))
 );
 
+-- Doctor settings
+create table if not exists public.doctor_settings (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade unique,
+  appointment_requests_notification boolean not null default true,
+  new_messages_notification boolean not null default true,
+  video_call_requests_notification boolean not null default true,
+  doctor_name text not null default 'Dr. John Doe',
+  specialization text not null default 'General Medicine',
+  license_number text not null default 'MD123456',
+  experience text not null default '10 years',
+  working_hours text not null default 'Mon-Fri: 9:00 AM - 5:00 PM',
+  two_factor_enabled boolean not null default false,
+  profile_visibility boolean not null default true,
+  show_online_status boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Feedback
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  user_type text not null default 'patient',
+  feedback text not null,
+  status text not null default 'pending',
+  admin_response text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint feedback_user_type_check check (user_type in ('patient', 'doctor', 'admin')),
+  constraint feedback_status_check check (status in ('pending', 'reviewed', 'responded'))
+);
+
+-- Doctor posts (migration 003)
+create table if not exists public.doctor_posts (
+  id uuid primary key default gen_random_uuid(),
+  doctor_id uuid not null references public.profiles(id) on delete cascade,
+  title text not null,
+  body text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Post comments (migration 003)
+create table if not exists public.post_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.doctor_posts(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint post_comments_body_check check (char_length(body) > 0)
+);
+
+-- Post likes (migration 003)
+create table if not exists public.post_likes (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.doctor_posts(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique(post_id, user_id)
+);
+
+-- Doctor reviews (migration 004)
+create table if not exists public.doctor_reviews (
+  id uuid primary key default gen_random_uuid(),
+  doctor_id uuid not null references public.profiles(id) on delete cascade,
+  patient_id uuid not null references public.profiles(id) on delete cascade,
+  rating int not null check (rating >= 1 and rating <= 5),
+  review_text text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(doctor_id, patient_id)
+);
+
+-- ============================================================
+-- FUNCTIONS & TRIGGERS
+-- ============================================================
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -163,26 +220,6 @@ begin
   return new;
 end;
 $$;
-
-drop trigger if exists trg_profiles_updated_at on public.profiles;
-create trigger trg_profiles_updated_at
-before update on public.profiles
-for each row execute function public.set_updated_at();
-
-drop trigger if exists trg_appointments_updated_at on public.appointments;
-create trigger trg_appointments_updated_at
-before update on public.appointments
-for each row execute function public.set_updated_at();
-
-drop trigger if exists trg_clinical_notes_updated_at on public.clinical_notes;
-create trigger trg_clinical_notes_updated_at
-before update on public.clinical_notes
-for each row execute function public.set_updated_at();
-
-drop trigger if exists trg_complaints_updated_at on public.complaints;
-create trigger trg_complaints_updated_at
-before update on public.complaints
-for each row execute function public.set_updated_at();
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -196,10 +233,9 @@ begin
     new.id,
     coalesce(lower(new.raw_user_meta_data ->> 'role')::public.app_role, 'patient'::public.app_role),
     coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
-    -- تفعيل المرضى تلقائياً ليتمكنوا من الدخول فوراً، بينما يحتاج الأطباء لموافقة الإدمن
-    case 
-      when lower(coalesce(new.raw_user_meta_data ->> 'role', 'patient')) = 'doctor' then false 
-      else true 
+    case
+      when lower(coalesce(new.raw_user_meta_data ->> 'role', 'patient')) = 'doctor' then false
+      else true
     end,
     new.raw_user_meta_data ->> 'specialty',
     new.raw_user_meta_data ->> 'phone_number'
@@ -209,11 +245,6 @@ begin
   return new;
 end;
 $$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute function public.handle_new_user();
 
 create or replace function public.is_doctor()
 returns boolean
@@ -245,15 +276,131 @@ as $$
   );
 $$;
 
+-- updated_at triggers
+drop trigger if exists trg_profiles_updated_at on public.profiles;
+create trigger trg_profiles_updated_at
+before update on public.profiles
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_appointments_updated_at on public.appointments;
+create trigger trg_appointments_updated_at
+before update on public.appointments
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_clinical_notes_updated_at on public.clinical_notes;
+create trigger trg_clinical_notes_updated_at
+before update on public.clinical_notes
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_complaints_updated_at on public.complaints;
+create trigger trg_complaints_updated_at
+before update on public.complaints
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_doctor_settings_updated_at on public.doctor_settings;
+create trigger trg_doctor_settings_updated_at
+before update on public.doctor_settings
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_feedback_updated_at on public.feedback;
+create trigger trg_feedback_updated_at
+before update on public.feedback
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_doctor_posts_updated_at on public.doctor_posts;
+create trigger trg_doctor_posts_updated_at
+before update on public.doctor_posts
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_post_comments_updated_at on public.post_comments;
+create trigger trg_post_comments_updated_at
+before update on public.post_comments
+for each row execute function public.set_updated_at();
+
+drop trigger if exists trg_doctor_reviews_updated_at on public.doctor_reviews;
+create trigger trg_doctor_reviews_updated_at
+before update on public.doctor_reviews
+for each row execute function public.set_updated_at();
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();
+
+-- ============================================================
+-- REALTIME PUBLICATION
+-- ============================================================
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+        CREATE PUBLICATION supabase_realtime;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND tablename = 'appointments'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.appointments;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND tablename = 'chat_messages'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND tablename = 'profiles'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND tablename = 'doctor_posts'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.doctor_posts;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND tablename = 'post_likes'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.post_likes;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime' AND tablename = 'doctor_reviews'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.doctor_reviews;
+    END IF;
+END $$;
+
+-- ============================================================
+-- ROW LEVEL SECURITY
+-- ============================================================
+
 alter table public.profiles enable row level security;
 alter table public.appointments enable row level security;
 alter table public.medical_files enable row level security;
 alter table public.clinical_notes enable row level security;
 alter table public.chat_messages enable row level security;
 alter table public.complaints enable row level security;
+alter table public.doctor_settings enable row level security;
+alter table public.feedback enable row level security;
+alter table public.doctor_posts enable row level security;
+alter table public.post_comments enable row level security;
+alter table public.post_likes enable row level security;
+alter table public.doctor_reviews enable row level security;
 
--- Profiles policies
-drop policy if exists "profiles_select_self_or_doctor" on public.profiles;
+-- ============================================================
+-- RLS: PROFILES
+-- ============================================================
+
 drop policy if exists "profiles_select_self_or_staff_or_doctors" on public.profiles;
 create policy "profiles_select_self_or_staff_or_doctors"
 on public.profiles
@@ -291,7 +438,10 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Appointments policies
+-- ============================================================
+-- RLS: APPOINTMENTS
+-- ============================================================
+
 drop policy if exists "appointments_select_own" on public.appointments;
 create policy "appointments_select_own"
 on public.appointments
@@ -331,7 +481,10 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Medical files policies
+-- ============================================================
+-- RLS: MEDICAL FILES
+-- ============================================================
+
 drop policy if exists "medical_files_select_own" on public.medical_files;
 create policy "medical_files_select_own"
 on public.medical_files
@@ -376,7 +529,10 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Clinical notes policies
+-- ============================================================
+-- RLS: CLINICAL NOTES
+-- ============================================================
+
 drop policy if exists "clinical_notes_select_own" on public.clinical_notes;
 create policy "clinical_notes_select_own"
 on public.clinical_notes
@@ -436,7 +592,10 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Chat messages policies
+-- ============================================================
+-- RLS: CHAT MESSAGES
+-- ============================================================
+
 drop policy if exists "chat_messages_select_own" on public.chat_messages;
 create policy "chat_messages_select_own"
 on public.chat_messages
@@ -495,7 +654,10 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Complaints policies
+-- ============================================================
+-- RLS: COMPLAINTS
+-- ============================================================
+
 drop policy if exists "complaints_select_own_or_admin" on public.complaints;
 create policy "complaints_select_own_or_admin"
 on public.complaints
@@ -519,7 +681,202 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Storage bucket and policies
+-- ============================================================
+-- RLS: DOCTOR SETTINGS
+-- ============================================================
+
+drop policy if exists "doctor_settings_select_own" on public.doctor_settings;
+create policy "doctor_settings_select_own"
+on public.doctor_settings
+for select
+using (user_id = auth.uid());
+
+drop policy if exists "doctor_settings_insert_own" on public.doctor_settings;
+create policy "doctor_settings_insert_own"
+on public.doctor_settings
+for insert
+with check (user_id = auth.uid());
+
+drop policy if exists "doctor_settings_update_own" on public.doctor_settings;
+create policy "doctor_settings_update_own"
+on public.doctor_settings
+for update
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+-- ============================================================
+-- RLS: FEEDBACK
+-- ============================================================
+
+drop policy if exists "feedback_insert_own" on public.feedback;
+create policy "feedback_insert_own"
+on public.feedback
+for insert
+with check (user_id = auth.uid() or user_id is null);
+
+drop policy if exists "feedback_select_own" on public.feedback;
+create policy "feedback_select_own"
+on public.feedback
+for select
+using (user_id = auth.uid());
+
+drop policy if exists "feedback_admin_manage" on public.feedback;
+create policy "feedback_admin_manage"
+on public.feedback
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- ============================================================
+-- RLS: DOCTOR POSTS (migration 003)
+-- ============================================================
+
+drop policy if exists "doctor_posts_select_public" on public.doctor_posts;
+create policy "doctor_posts_select_public"
+on public.doctor_posts
+for select
+using (true);
+
+drop policy if exists "doctor_posts_insert_doctor" on public.doctor_posts;
+create policy "doctor_posts_insert_doctor"
+on public.doctor_posts
+for insert
+with check (
+  doctor_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'doctor'
+      and p.is_approved = true
+  )
+);
+
+drop policy if exists "doctor_posts_modify_own" on public.doctor_posts;
+create policy "doctor_posts_modify_own"
+on public.doctor_posts
+for all
+using (
+  doctor_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'doctor'
+      and p.is_approved = true
+  )
+)
+with check (
+  doctor_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'doctor'
+      and p.is_approved = true
+  )
+);
+
+drop policy if exists "doctor_posts_admin_all" on public.doctor_posts;
+create policy "doctor_posts_admin_all"
+on public.doctor_posts
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- ============================================================
+-- RLS: POST COMMENTS (migration 003)
+-- ============================================================
+
+drop policy if exists "post_comments_select_public" on public.post_comments;
+create policy "post_comments_select_public"
+on public.post_comments
+for select
+using (true);
+
+drop policy if exists "post_comments_insert_auth" on public.post_comments;
+create policy "post_comments_insert_auth"
+on public.post_comments
+for insert
+with check (user_id = auth.uid());
+
+drop policy if exists "post_comments_modify_own" on public.post_comments;
+create policy "post_comments_modify_own"
+on public.post_comments
+for all
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+drop policy if exists "post_comments_admin_all" on public.post_comments;
+create policy "post_comments_admin_all"
+on public.post_comments
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- ============================================================
+-- RLS: POST LIKES (migration 003)
+-- ============================================================
+
+drop policy if exists "post_likes_select_public" on public.post_likes;
+create policy "post_likes_select_public"
+on public.post_likes
+for select
+using (true);
+
+drop policy if exists "post_likes_modify_own" on public.post_likes;
+create policy "post_likes_modify_own"
+on public.post_likes
+for all
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+drop policy if exists "post_likes_admin_all" on public.post_likes;
+create policy "post_likes_admin_all"
+on public.post_likes
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- ============================================================
+-- RLS: DOCTOR REVIEWS (migration 004)
+-- ============================================================
+
+drop policy if exists "doctor_reviews_select_public" on public.doctor_reviews;
+create policy "doctor_reviews_select_public"
+on public.doctor_reviews
+for select
+using (true);
+
+drop policy if exists "doctor_reviews_insert_patient" on public.doctor_reviews;
+create policy "doctor_reviews_insert_patient"
+on public.doctor_reviews
+for insert
+with check (
+  patient_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'patient'
+  )
+);
+
+drop policy if exists "doctor_reviews_modify_own" on public.doctor_reviews;
+create policy "doctor_reviews_modify_own"
+on public.doctor_reviews
+for all
+using (patient_id = auth.uid())
+with check (patient_id = auth.uid());
+
+drop policy if exists "doctor_reviews_admin_all" on public.doctor_reviews;
+create policy "doctor_reviews_admin_all"
+on public.doctor_reviews
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- ============================================================
+-- STORAGE BUCKETS & POLICIES
+-- ============================================================
+
+-- Medical files bucket
 insert into storage.buckets (id, name, public)
 values ('medical-files', 'medical-files', false)
 on conflict (id) do nothing;
@@ -549,90 +906,37 @@ with check (
   bucket_id = 'medical-files'
   and split_part(name, '/', 1) = auth.uid()::text
 );
--- Doctor Settings table
-create table if not exists public.doctor_settings (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade unique,
-  appointment_requests_notification boolean not null default true,
-  new_messages_notification boolean not null default true,
-  video_call_requests_notification boolean not null default true,
-  doctor_name text not null default 'Dr. John Doe',
-  specialization text not null default 'General Medicine',
-  license_number text not null default 'MD123456',
-  experience text not null default '10 years',
-  working_hours text not null default 'Mon-Fri: 9:00 AM - 5:00 PM',
-  two_factor_enabled boolean not null default false,
-  profile_visibility boolean not null default true,
-  show_online_status boolean not null default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+
+-- Avatars bucket
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', false)
+on conflict (id) do nothing;
+
+drop policy if exists "storage_select_avatars_auth" on storage.objects;
+create policy "storage_select_avatars_auth"
+on storage.objects
+for select
+using (
+  bucket_id = 'avatars'
+  and auth.role() = 'authenticated'
 );
 
--- Feedback table
-create table if not exists public.feedback (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete set null,
-  user_type text not null default 'patient',
-  feedback text not null,
-  status text not null default 'pending',
-  admin_response text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint feedback_user_type_check check (user_type in ('patient', 'doctor', 'admin')),
-  constraint feedback_status_check check (status in ('pending', 'reviewed', 'responded'))
+drop policy if exists "storage_insert_own_avatars" on storage.objects;
+create policy "storage_insert_own_avatars"
+on storage.objects
+for insert
+with check (
+  bucket_id = 'avatars'
+  and auth.role() = 'authenticated'
+  and left(name, length(auth.uid() || '/')) = auth.uid() || '/'
 );
 
--- Enable RLS on new tables
-alter table public.doctor_settings enable row level security;
-alter table public.feedback enable row level security;
-
--- Doctor Settings policies
-drop policy if exists "doctor_settings_select_own" on public.doctor_settings;
-create policy "doctor_settings_select_own"
-on public.doctor_settings
-for select
-using (user_id = auth.uid());
-
-drop policy if exists "doctor_settings_insert_own" on public.doctor_settings;
-create policy "doctor_settings_insert_own"
-on public.doctor_settings
-for insert
-with check (user_id = auth.uid());
-
-drop policy if exists "doctor_settings_update_own" on public.doctor_settings;
-create policy "doctor_settings_update_own"
-on public.doctor_settings
-for update
-using (user_id = auth.uid())
-with check (user_id = auth.uid());
-
--- Feedback policies
-drop policy if exists "feedback_insert_own" on public.feedback;
-create policy "feedback_insert_own"
-on public.feedback
-for insert
-with check (user_id = auth.uid() or user_id is null);
-
-drop policy if exists "feedback_select_own" on public.feedback;
-create policy "feedback_select_own"
-on public.feedback
-for select
-using (user_id = auth.uid());
-
-drop policy if exists "feedback_admin_manage" on public.feedback;
-create policy "feedback_admin_manage"
-on public.feedback
-for all
-using (public.is_admin())
-with check (public.is_admin());
-
--- Add updated_at triggers
-drop trigger if exists trg_doctor_settings_updated_at on public.doctor_settings;
-create trigger trg_doctor_settings_updated_at
-before update on public.doctor_settings
-for each row execute function public.set_updated_at();
-
-drop trigger if exists trg_feedback_updated_at on public.feedback;
-create trigger trg_feedback_updated_at
-before update on public.feedback
-for each row execute function public.set_updated_at();
+drop policy if exists "storage_delete_own_avatars" on storage.objects;
+create policy "storage_delete_own_avatars"
+on storage.objects
+for delete
+using (
+  bucket_id = 'avatars'
+  and auth.role() = 'authenticated'
+  and left(name, length(auth.uid() || '/')) = auth.uid() || '/'
+);

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 
+
 import '../../../core/supabase/supabase_service.dart';
 import '../../../routes/app_pages.dart';
 import '../../../theme/github_theme.dart';
+import '../patient_theme.dart';
 import '../controllers/patient_controller.dart';
 
 class ChatView extends StatefulWidget {
@@ -16,16 +18,17 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> {
   final PatientController controller = Get.find<PatientController>();
-  PatientAppointment? appointment;
 
   @override
   void initState() {
     super.initState();
-    appointment = Get.arguments as PatientAppointment?;
-    if (appointment != null) {
-      controller.selectChatAppointment(appointment!.id);
+    // If called with an argument (old flow), select it; otherwise, controller will pick the accepted one.
+    final Object? args = Get.arguments;
+    if (args is PatientAppointment) {
+      controller.selectChatAppointment(args.id);
     }
   }
+
 
   @override
   void dispose() {
@@ -35,217 +38,395 @@ class _ChatViewState extends State<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    if (appointment == null) {
-      return Scaffold(
-        backgroundColor: GithubTheme.bg,
-        appBar: AppBar(
-          title: const Text('Chat'),
-          elevation: 0,
-          backgroundColor: GithubTheme.surface,
-          foregroundColor: GithubTheme.textPrimary,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: const Border(
-            bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-          ),
-        ),
-        body: const Center(child: Text('No appointment selected')),
-      );
-    }
+    return Obx(() {
+      final PatientAppointment? appt = controller.selectedChatAppointment;
+      final bool isChatOpen = appt != null;
 
-    return Scaffold(
-      backgroundColor: GithubTheme.bg,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: GithubTheme.secondary,
-              backgroundImage: appointment!.doctorAvatarUrl != null
-                  ? NetworkImage(appointment!.doctorAvatarUrl!)
-                  : null,
-              child: appointment!.doctorAvatarUrl == null
-                  ? Text(
-                      appointment!.doctor.isNotEmpty
-                          ? appointment!.doctor[0].toUpperCase()
-                          : 'D',
-                      style: const TextStyle(color: Colors.white),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text('Chat with ${appointment!.doctor}')),
-          ],
-        ),
+      return Scaffold(
+        backgroundColor: PatientStyles.navy,
+        appBar: AppBar(
+          leading: isChatOpen
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    controller.selectChatAppointment(''); 
+                  },
+                )
+              : null,
+          title: isChatOpen
+              ? Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: PatientStyles.blue,
+                      backgroundImage: appt.doctorAvatarUrl != null
+                          ? NetworkImage(appt.doctorAvatarUrl!)
+                          : null,
+                      child: appt.doctorAvatarUrl == null
+                          ? Text(
+                              appt.doctor.isNotEmpty == true
+                                  ? appt.doctor[0].toUpperCase()
+                                  : 'D',
+                              style: const TextStyle(color: Colors.white),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        'Chat with ${appt.doctor}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                )
+              : const Text('Appointments'),
+
         elevation: 0,
-        backgroundColor: GithubTheme.surface,
-        foregroundColor: GithubTheme.textPrimary,
+        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        foregroundColor: PatientStyles.textPrimary,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
         shape: const Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          bottom: BorderSide(color: PatientStyles.border, width: 1),
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'View doctor profile',
-            onPressed: () {
-              Get.toNamed(
-                AppRoutes.publicProfile,
-                arguments: <String, dynamic>{'id': appointment!.doctorId},
-              );
-            },
-          ),
-          IconButton(
-            onPressed: controller.canStartSelectedVideoCall
-                ? controller.openSelectedVideoCall
-                : null,
-            icon: const Icon(Icons.video_call_outlined),
+        actions: isChatOpen
+            ? <Widget>[
+                IconButton(
+                  icon: const Icon(Icons.person_outline),
+                  tooltip: 'View doctor profile',
+                  onPressed: () {
+                    final PatientAppointment? appt =
+                        controller.selectedChatAppointment;
+                    if (appt == null) return;
+                    Get.toNamed(
+                      AppRoutes.publicProfile,
+                      arguments: <String, dynamic>{'id': appt.doctorId},
+                    );
+                  },
+                ),
+                IconButton(
+                  onPressed: controller.canStartSelectedVideoCall
+                      ? controller.openSelectedVideoCall
+                      : null,
+                  icon: const Icon(Icons.video_call_outlined),
+                ),
+              ]
+            : <Widget>[],
+      ),
+      body: Stack(
+        children: <Widget>[
+          Container(decoration: PatientStyles.backgroundGradient),
+          Container(
+            child: isChatOpen
+                ? _buildChatArea()
+                : _buildAppointmentsList(),
           ),
         ],
       ),
-      body: Container(
-        color: GithubTheme.bg,
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Obx(() {
-                if (controller.messagesError.value.isNotEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        controller.messagesError.value,
-                        style: const TextStyle(color: GithubTheme.danger),
-                      ),
-                    ),
-                  );
-                }
+    );
+    },
+    );
+  }
 
-                if (controller.isLoadingMessages.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+  Widget _buildAppointmentsList() {
+    final List<PatientAppointment> pending = controller.appointments
+        .where((PatientAppointment item) => item.status == 'Pending')
+        .toList();
+    final List<PatientAppointment> accepted = controller.appointments
+        .where((PatientAppointment item) => item.chatEnabled)
+        .toList();
+    final List<PatientAppointment> other = controller.appointments
+        .where(
+          (PatientAppointment item) =>
+              item.status != 'Pending' && !item.chatEnabled,
+        )
+        .toList();
 
-                if (controller.messages.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No messages yet.',
-                      style: TextStyle(color: GithubTheme.textSecondary),
-                    ),
-                  );
-                }
+    if (controller.isLoadingAppointments.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: controller.messages.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final ChatMessageItem msg = controller.messages[index];
-                    final bool own = controller.isOwnMessage(msg.senderId);
-                    return _buildGitHubStyleMessage(msg, own, context);
-                  },
-                );
-              }),
-            ),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                color: GithubTheme.bg,
-                border: Border(
-                  top: BorderSide(color: GithubTheme.border, width: 1.0),
+    if (controller.appointments.isEmpty) {
+      return const Center(
+        child: Text(
+          'No appointments',
+          style: TextStyle(color: PatientStyles.textSecondary),
+        ),
+      );
+    }
+
+    return SafeArea(
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: const SliverToBoxAdapter(
+              child: Text(
+                'Appointments',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: PatientStyles.textPrimary,
                 ),
               ),
-              child: SafeArea(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: GithubTheme.surface,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: GithubTheme.border),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      InkWell(
-                        onTap: controller.sendAttachment,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: GithubTheme.bg,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: GithubTheme.border),
-                          ),
-                          child: const Icon(
-                            Icons.attach_file,
-                            color: GithubTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: controller.messageController,
-                          style: const TextStyle(
-                            color: GithubTheme.textPrimary,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Leave a comment...',
-                            hintStyle: const TextStyle(
-                              color: GithubTheme.textSecondary,
-                            ),
-                            filled: true,
-                            fillColor: GithubTheme.bg,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: GithubTheme.border,
-                              ),
-                              borderRadius: BorderRadius.circular(14.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                color: GithubTheme.primary,
-                              ),
-                              borderRadius: BorderRadius.circular(14.0),
-                            ),
-                          ),
-                          onSubmitted: (_) => controller.sendTextMessage(),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: GithubTheme.success,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.0),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 14,
-                          ),
-                        ),
-                        onPressed: controller.sendTextMessage,
-                        child: const Text(
-                          'Comment',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
+            ),
+          ),
+          if (pending.isNotEmpty) ...<Widget>[
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: const SliverToBoxAdapter(
+                child: Text(
+                  'Pending Requests',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: PatientStyles.slate,
                   ),
                 ),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final PatientAppointment item = pending[index];
+                  return _appointmentListTile(
+                    title: item.doctor,
+                    subtitle: 'Waiting for doctor confirmation',
+                    statusText: item.status,
+                    statusColor: GithubTheme.warning,
+                    unreadCount: 0,
+                    onTap: () {
+                      Get.snackbar(
+                        'Pending',
+                        'Your request is waiting for the doctor to accept.',
+                      );
+                    },
+                    actionable: false,
+                  );
+                },
+                childCount: pending.length,
               ),
             ),
           ],
-        ),
+          if (accepted.isNotEmpty) ...<Widget>[
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  'Active Consultations',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: PatientStyles.slate,
+                  ),
+                ),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final PatientAppointment item = accepted[index];
+                  final int unread = controller.unreadForAppointment(item.id);
+                  return _appointmentListTile(
+                    title: item.doctor,
+                    subtitle: 'Tap to continue the consultation',
+                    statusText: 'Accepted',
+                    statusColor: GithubTheme.success,
+                    unreadCount: unread,
+                    onTap: () {
+                      controller.selectChatAppointment(item.id);
+                    },
+                    actionable: true,
+                    trailingRightIcon: Icons.arrow_forward_ios,
+                  );
+                },
+                childCount: accepted.length,
+              ),
+            ),
+          ],
+          if (other.isNotEmpty) ...<Widget>[
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  'Other Appointments',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: PatientStyles.slate,
+                  ),
+                ),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final PatientAppointment item = other[index];
+                  return _appointmentListTile(
+                    title: item.doctor,
+                    subtitle: 'Appointment status: ${item.status}',
+                    statusText: item.status,
+                    statusColor: GithubTheme.textMuted,
+                    unreadCount: 0,
+                    onTap: () {
+                      Get.snackbar(
+                        'Appointment queued',
+                        'This appointment has been recorded for your review.',
+                      );
+                    },
+                    actionable: false,
+                  );
+                },
+                childCount: other.length,
+              ),
+            ),
+          ],
+        ],
       ),
+    );
+  }
+
+  Widget _buildChatArea() {
+    if (controller.messagesError.value.isNotEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            controller.messagesError.value,
+            style: const TextStyle(color: GithubTheme.danger),
+          ),
+        ),
+      );
+    }
+
+    if (controller.isLoadingMessages.value) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (controller.messages.isEmpty) {
+      return const Center(
+        child: Text(
+          'No messages yet.',
+          style: TextStyle(color: GithubTheme.textSecondary),
+        ),
+      );
+    }
+
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: controller.messages.length,
+            itemBuilder: (BuildContext context, int index) {
+              final ChatMessageItem msg = controller.messages[index];
+              final bool own = controller.isOwnMessage(msg.senderId);
+              return _buildGitHubStyleMessage(msg, own, context);
+            },
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: const BoxDecoration(
+            color: GithubTheme.bg,
+            border: Border(
+              top: BorderSide(color: GithubTheme.border, width: 1.0),
+            ),
+          ),
+          child: SafeArea(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: GithubTheme.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: GithubTheme.border),
+              ),
+              child: Row(
+                children: <Widget>[
+                  InkWell(
+                    onTap: controller.sendAttachment,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: GithubTheme.bg,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: GithubTheme.border),
+                      ),
+                      child: const Icon(
+                        Icons.attach_file,
+                        color: GithubTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: controller.messageController,
+                      style: const TextStyle(
+                        color: PatientStyles.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Leave a comment...',
+                        hintStyle: const TextStyle(
+                          color: PatientStyles.slateLight,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: PatientStyles.border,
+                          ),
+                          borderRadius: BorderRadius.circular(14.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: PatientStyles.blue,
+                          ),
+                          borderRadius: BorderRadius.circular(14.0),
+                        ),
+                      ),
+                      onSubmitted: (_) => controller.sendTextMessage(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GithubTheme.success,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14.0),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 14,
+                      ),
+                    ),
+                    onPressed: controller.sendTextMessage,
+                    child: const Text(
+                      'Comment',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -298,25 +479,31 @@ class _ChatViewState extends State<ChatView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Text(
-                      own ? 'You' : 'Doctor',
-                      style: const TextStyle(
-                        color: GithubTheme.textPrimary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                Expanded(
+                  child: Row(
+                    children: <Widget>[
+                      Text(
+                        own ? 'You' : 'Doctor',
+                        style: const TextStyle(
+                          color: GithubTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'commented ${controller.formatMessageTime(msg.createdAt)}',
-                      style: const TextStyle(
-                        color: GithubTheme.textSecondary,
-                        fontSize: 12,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'commented ${controller.formatMessageTime(msg.createdAt)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: GithubTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 if (own)
                   Builder(
@@ -324,8 +511,8 @@ class _ChatViewState extends State<ChatView> {
                       final String status = controller.messageStatusFor(msg);
                       final IconData icon =
                           status == 'Seen' || status == 'Delivered'
-                          ? Icons.done_all
-                          : Icons.done;
+                              ? Icons.done_all
+                              : Icons.done;
                       final Color color = status == 'Seen'
                           ? GithubTheme.primary
                           : GithubTheme.textSecondary;
@@ -357,8 +544,6 @@ class _ChatViewState extends State<ChatView> {
                       padding: const EdgeInsets.only(top: 8),
                       child: GestureDetector(
                         onTap: () {
-                          // تأكد من وجود دالة openImage في PatientController
-                          // سنمرر البيانات اللازمة لفتح الصورة
                           controller.openImage(msg);
                         },
                         child: ClipRRect(
@@ -464,7 +649,123 @@ class _ChatViewState extends State<ChatView> {
     );
   }
 
+  Widget _appointmentListTile({
+    required String title,
+    required String subtitle,
+    required String statusText,
+    required Color statusColor,
+    required int unreadCount,
+    required VoidCallback onTap,
+    required bool actionable,
+    IconData? trailingRightIcon,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      color: Colors.white.withValues(alpha: 0.94),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: PatientStyles.border.withValues(alpha: 0.5)),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                            child: Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: PatientStyles.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ),
+                        if (unreadCount > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: PatientStyles.blue,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : unreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: PatientStyles.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: const BorderRadius.all(Radius.circular(10)),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (actionable)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(
+                    trailingRightIcon ?? Icons.arrow_forward_ios,
+                    size: 16,
+                    color: GithubTheme.textMuted,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   bool _isImage(String? type, String? filename) {
+
     final String lowerType = (type ?? '').toLowerCase();
     final String lowerName = (filename ?? '').toLowerCase();
     return lowerType.contains('jpg') ||
@@ -481,7 +782,6 @@ class _ChatViewState extends State<ChatView> {
   }
 
   String _getAttachmentUrl(String path) {
-    // للوصول للملفات المحمية، نستخدم مسار authenticated
     final String baseUrl = SupabaseService.supabaseUrl;
     final String authenticatedUrl =
         '$baseUrl/storage/v1/object/authenticated/medical-files/$path';

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../auth/controllers/auth_controller.dart';
-import '../../../routes/app_pages.dart';
-import '../../../shared/widgets/github_widgets.dart';
-import '../../../theme/github_theme.dart';
+import '../admin_theme.dart';
 import '../controllers/admin_controller.dart';
 
 class AdminComplaintsView extends StatelessWidget {
@@ -15,192 +12,251 @@ class AdminComplaintsView extends StatelessWidget {
     final AdminController controller = Get.isRegistered<AdminController>()
         ? Get.find<AdminController>()
         : Get.put(AdminController());
-    final AuthController authController = Get.find<AuthController>();
 
     return Scaffold(
-      backgroundColor: GithubTheme.bg,
-      appBar: GithubTopBar(
-        title: 'Complaints Review',
-        onLogout: authController.logout,
+      body: Container(
+        decoration: AdminStyles.backgroundGradient,
+        child: SafeArea(
+          child: Column(
+            children: <Widget>[
+              _buildHeader(),
+              Expanded(child: Obx(() => _buildList(controller))),
+            ],
+          ),
+        ),
       ),
-      drawer: GithubDrawer(
-        menuTitle: 'Admin Menu',
-        items: <GithubDrawerItem>[
-          GithubDrawerItem(
-            icon: Icons.dashboard,
-            label: 'Dashboard',
-            onTap: () => Get.toNamed(AppRoutes.admin),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 8, 20, 12),
+      child: Row(
+        children: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+            onPressed: () => Get.back(),
           ),
-          GithubDrawerItem(
-            icon: Icons.person_outline,
-            label: 'Accounts',
-            onTap: () => Get.toNamed(AppRoutes.adminAccounts),
+          const Spacer(),
+          const Text(
+            'Complaints',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AdminStyles.textPrimary,
+            ),
           ),
-          GithubDrawerItem(
-            icon: Icons.report_outlined,
-            label: 'Complaints',
-            onTap: () {},
-          ),
-          GithubDrawerItem(
-            icon: Icons.logout,
-            label: 'Logout',
-            onTap: () => authController.logout(),
-          ),
+          const Spacer(),
+          const SizedBox(width: 48),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Obx(() {
-          if (controller.isLoadingComplaints.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    );
+  }
 
-          if (controller.complaintsError.value.isNotEmpty) {
-            return Card(
-              color: GithubTheme.warningSurface,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  controller.complaintsError.value,
-                  style: const TextStyle(color: GithubTheme.warning),
-                ),
-              ),
-            );
-          }
+  Widget _buildList(AdminController controller) {
+    if (controller.isLoadingComplaints.value) {
+      return const Center(
+        child: CircularProgressIndicator(color: AdminStyles.navy),
+      );
+    }
 
-          if (controller.complaints.isEmpty) {
-            return const Center(
-              child: Text('No complaints have been submitted yet.'),
-            );
-          }
+    if (controller.complaintsError.value.isNotEmpty) {
+      return Center(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AdminStyles.danger.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            controller.complaintsError.value,
+            style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+          ),
+        ),
+      );
+    }
 
-          return ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              const GithubSectionHeader(
-                title: 'Complaint Queue',
-                subtitle: 'Review open issues and publish admin responses.',
-              ),
-              const SizedBox(height: 16),
-              ...controller.complaints.map((AdminComplaintItem complaint) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: GithubTheme.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              complaint.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          GithubBadge(
-                            text: complaint.status,
-                            textColor: GithubTheme.info,
-                            bgColor: GithubTheme.infoSurface,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Patient: ${complaint.patientName} | Doctor: ${complaint.doctorName ?? '-'}',
+    if (controller.complaints.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const <Widget>[
+            Icon(Icons.check_circle_outline_rounded, size: 56, color: AdminStyles.success),
+            SizedBox(height: 12),
+            Text('No complaints', style: TextStyle(
+              color: AdminStyles.slate, fontSize: 15, fontWeight: FontWeight.w600,
+            )),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => controller.loadComplaints(),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: controller.complaints.length,
+        itemBuilder: (BuildContext context, int index) {
+          final complaint = controller.complaints[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(18),
+            decoration: AdminStyles.cardDecoration(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        complaint.title,
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: GithubTheme.textSecondary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AdminStyles.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(complaint.body),
-                      if ((complaint.adminResponse ?? '')
-                          .isNotEmpty) ...<Widget>[
-                        const SizedBox(height: 12),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: GithubTheme.mutedSurface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: GithubTheme.border),
-                          ),
-                          child: Text(
-                            'Admin response: ${complaint.adminResponse}',
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: <Widget>[
-                          SizedBox(
-                            width: 150,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: complaint.status,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              items: const <DropdownMenuItem<String>>[
-                                DropdownMenuItem<String>(
-                                  value: 'open',
-                                  child: Text('open'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'in_review',
-                                  child: Text('in_review'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'resolved',
-                                  child: Text('resolved'),
-                                ),
-                                DropdownMenuItem<String>(
-                                  value: 'rejected',
-                                  child: Text('rejected'),
-                                ),
-                              ],
-                              onChanged: (String? value) {
-                                if (value != null &&
-                                    value != complaint.status) {
-                                  controller.updateComplaintStatus(
-                                    complaint.id,
-                                    value,
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                          OutlinedButton(
-                            onPressed: () => _showRespondDialog(
-                              context,
-                              controller,
-                              complaint.id,
-                            ),
-                            child: const Text('Respond'),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(width: 8),
+                    _statusBadge(complaint.status),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: <Widget>[
+                    const Icon(Icons.person_rounded, size: 14, color: AdminStyles.slate),
+                    const SizedBox(width: 4),
+                    Text(
+                      complaint.patientName,
+                      style: const TextStyle(fontSize: 12, color: AdminStyles.textSecondary),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(Icons.medical_services_rounded, size: 14, color: AdminStyles.slate),
+                    const SizedBox(width: 4),
+                    Text(
+                      complaint.doctorName ?? '-',
+                      style: const TextStyle(fontSize: 12, color: AdminStyles.textSecondary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  complaint.body,
+                  style: const TextStyle(color: AdminStyles.textPrimary, fontSize: 13),
+                ),
+                if ((complaint.adminResponse ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AdminStyles.navy.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AdminStyles.border),
+                    ),
+                    child: Text(
+                      'Admin response: ${complaint.adminResponse}',
+                      style: const TextStyle(
+                        color: AdminStyles.textPrimary,
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
                       ),
-                    ],
+                    ),
                   ),
-                );
-              }),
-            ],
+                ],
+                const SizedBox(height: 14),
+                Row(
+                  children: <Widget>[
+                    SizedBox(
+                      width: 140,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: complaint.status,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AdminStyles.border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AdminStyles.border),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: const <DropdownMenuItem<String>>[
+                          DropdownMenuItem(value: 'open', child: Text('open', style: TextStyle(fontSize: 13))),
+                          DropdownMenuItem(value: 'in_review', child: Text('in_review', style: TextStyle(fontSize: 13))),
+                          DropdownMenuItem(value: 'resolved', child: Text('resolved', style: TextStyle(fontSize: 13))),
+                          DropdownMenuItem(value: 'rejected', child: Text('rejected', style: TextStyle(fontSize: 13))),
+                        ],
+                        onChanged: (String? value) {
+                          if (value != null && value != complaint.status) {
+                            controller.updateComplaintStatus(complaint.id, value);
+                          }
+                        },
+                      ),
+                    ),
+                    const Spacer(),
+                    OutlinedButton.icon(
+                      onPressed: () => _showRespondDialog(context, controller, complaint.id),
+                      icon: const Icon(Icons.reply_rounded, size: 16),
+                      label: const Text('Respond', style: TextStyle(fontSize: 13)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AdminStyles.navy,
+                        side: const BorderSide(color: AdminStyles.navy),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           );
-        }),
+        },
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status) {
+    Color bg;
+    Color fg;
+    switch (status) {
+      case 'open':
+        bg = AdminStyles.danger.withValues(alpha: 0.12);
+        fg = AdminStyles.danger;
+        break;
+      case 'in_review':
+        bg = AdminStyles.warning.withValues(alpha: 0.12);
+        fg = AdminStyles.warning;
+        break;
+      case 'resolved':
+        bg = AdminStyles.success.withValues(alpha: 0.12);
+        fg = AdminStyles.success;
+        break;
+      case 'rejected':
+        bg = AdminStyles.slate.withValues(alpha: 0.12);
+        fg = AdminStyles.slate;
+        break;
+      default:
+        bg = AdminStyles.slate.withValues(alpha: 0.12);
+        fg = AdminStyles.slate;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        status.replaceAll('_', ' '),
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
       ),
     );
   }
@@ -212,28 +268,37 @@ class AdminComplaintsView extends StatelessWidget {
   ) async {
     final TextEditingController textController = TextEditingController();
 
-    final bool? save = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Respond to Complaint'),
-          content: TextField(
-            controller: textController,
-            maxLines: 4,
-            decoration: const InputDecoration(labelText: 'Admin response'),
+    final bool? save = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Respond to Complaint',
+          style: TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.textPrimary),
+        ),
+        content: TextField(
+          controller: textController,
+          maxLines: 4,
+          decoration: AdminStyles.inputDecoration(
+            label: 'Admin response',
+            hint: 'Type your response...',
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AdminStyles.navy,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
 
     if (save == true) {

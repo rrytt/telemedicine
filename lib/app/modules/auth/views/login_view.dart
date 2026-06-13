@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -167,9 +169,9 @@ class LoginView extends GetView<AuthController> {
                           ),
                           children: [
                             if (!signUp)
-                              // ignore: prefer_const_constructors
                               TextSpan(
-                                text: 'To sign in, please enter your $appName credentials. ',
+                                text:
+                                    'To sign in, please enter your $appName credentials. ',
                               )
                             else
                               const TextSpan(

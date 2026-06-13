@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../theme/github_theme.dart';
 import '../controllers/settings_controller.dart';
+import '../doctor_theme.dart';
 
 class TwoFactorView extends StatelessWidget {
   const TwoFactorView({super.key});
@@ -14,73 +15,74 @@ class TwoFactorView extends StatelessWidget {
         Get.find<SettingsController>();
 
     return Scaffold(
-      backgroundColor: GithubTheme.bg,
+      backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('Two-Factor Authentication'),
-        backgroundColor: GithubTheme.surface,
-        foregroundColor: GithubTheme.textPrimary,
+        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Two-factor authentication adds an extra security layer to your account. '
-                  'When enabled, you will need an additional verification step during login.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: GithubTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Obx(() {
-                  return SwitchListTile(
-                    tileColor: GithubTheme.mutedSurface,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+      body: Stack(
+        children: <Widget>[
+          Container(decoration: DoctorStyles.backgroundGradient),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: DoctorStyles.glassCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Two-factor authentication adds an extra security layer to your account. '
+                    'When enabled, you will need an additional verification step during login.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: DoctorStyles.textSecondary,
                     ),
-                    title: const Text('Enable two-factor authentication'),
-                    subtitle: Text(
-                      settingsController.twoFactorEnabled.value
-                          ? 'Two-factor authentication is enabled.'
-                          : 'Add an extra layer of security to your account.',
-                    ),
-                    value: settingsController.twoFactorEnabled.value,
-                    onChanged: (value) {
-                      if (value) {
-                        _showEnableTwoFactorDialog(settingsController);
-                      } else {
-                        settingsController.setTwoFactorEnabled(false);
-                        Get.snackbar(
-                          '2FA Disabled',
-                          'Two-factor authentication has been turned off.',
-                        );
-                      }
-                    },
-                  );
-                }),
-                const SizedBox(height: 16),
-                const Text(
-                  'This screen allows you to enable or disable two-factor authentication for your account. '
-                  'A real implementation would use a secure verification flow with an authentication app or SMS code.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: GithubTheme.textSecondary,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  Obx(() {
+                    return SwitchListTile(
+                      tileColor: GithubTheme.mutedSurface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      title: const Text('Enable two-factor authentication'),
+                      subtitle: Text(
+                        settingsController.twoFactorEnabled.value
+                            ? 'Two-factor authentication is enabled.'
+                            : 'Add an extra layer of security to your account.',
+                      ),
+                      value: settingsController.twoFactorEnabled.value,
+                      onChanged: (value) {
+                        if (value) {
+                          _showEnableTwoFactorDialog(settingsController);
+                        } else {
+                          settingsController.setTwoFactorEnabled(false);
+                          Get.snackbar(
+                            '2FA Disabled',
+                            'Two-factor authentication has been turned off.',
+                          );
+                        }
+                      },
+                    );
+                  }),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'This screen allows you to enable or disable two-factor authentication for your account. '
+                    'A real implementation would use a secure verification flow with an authentication app or SMS code.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: DoctorStyles.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -107,7 +109,7 @@ class TwoFactorView extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: GithubTheme.mutedSurface,
+                color: DoctorStyles.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: SelectableText(
@@ -121,9 +123,9 @@ class TwoFactorView extends StatelessWidget {
             const SizedBox(height: 16),
             TextField(
               controller: codeController,
-              decoration: const InputDecoration(
-                labelText: 'Verification Code',
-                border: OutlineInputBorder(),
+              decoration: DoctorStyles.inputDecoration(
+                label: 'Verification Code',
+                prefixIcon: const Icon(Icons.pin_outlined, color: DoctorStyles.slateLight),
               ),
             ),
           ],
@@ -136,6 +138,7 @@ class TwoFactorView extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
+            style: DoctorStyles.primaryButton,
             onPressed: () {
               if (codeController.text.trim() == verificationCode) {
                 settingsController.setTwoFactorEnabled(true);

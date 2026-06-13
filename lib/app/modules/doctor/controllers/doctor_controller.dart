@@ -108,6 +108,7 @@ class DoctorController extends GetxController {
   bool get canReplyToSelectedPatient => selectedItem?.canChat ?? false;
   bool get canStartVideoCall => selectedItem?.canChat ?? false;
   String? get _currentUserId => SupabaseService.client.auth.currentUser?.id;
+  String get userId => _currentUserId ?? '';
 
   bool isOwnMessage(String senderId) => senderId == _currentUserId;
 
