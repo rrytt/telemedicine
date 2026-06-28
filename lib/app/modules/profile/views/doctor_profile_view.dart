@@ -21,15 +21,15 @@ class DoctorProfileView extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Container(
-                padding: const EdgeInsets.fromLTRB(4, 4, 20, 0),
+                padding: EdgeInsets.fromLTRB(4, 4, 20, 0),
                 child: Row(
                   children: <Widget>[
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: DoctorStyles.textPrimary),
+                      icon: Icon(Icons.arrow_back_rounded, color: DoctorStyles.textPrimary),
                       onPressed: () => Get.back(),
                     ),
                     const Spacer(),
-                    const Text(
+                    Text(
                       'Doctor Profile',
                       style: TextStyle(
                         fontSize: 18,
@@ -45,16 +45,16 @@ class DoctorProfileView extends StatelessWidget {
               Expanded(
                 child: Obx(() {
                   if (profileController.isLoading.value) {
-                    return const Center(child: CircularProgressIndicator(color: DoctorStyles.navy));
+                    return Center(child: CircularProgressIndicator(color: DoctorStyles.navy));
                   }
 
                   return SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: EdgeInsets.all(24),
                           decoration: DoctorStyles.cardDecoration(),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -75,7 +75,7 @@ class DoctorProfileView extends StatelessWidget {
                                   ),
                                   Obx(
                                     () => IconButton(
-                                      icon: const Icon(Icons.camera_alt, color: DoctorStyles.navy),
+                                      icon: Icon(Icons.camera_alt, color: DoctorStyles.navy),
                                       onPressed: profileController.isUploading.value
                                           ? null
                                           : profileController.uploadAvatar,
@@ -89,7 +89,7 @@ class DoctorProfileView extends StatelessWidget {
                                 profileController.fullNameController.text.isNotEmpty
                                     ? profileController.fullNameController.text
                                     : profileController.email.value,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
                                   color: DoctorStyles.textPrimary,
@@ -98,10 +98,10 @@ class DoctorProfileView extends StatelessWidget {
                               const SizedBox(height: 6),
                               Text(
                                 profileController.email.value,
-                                style: const TextStyle(fontSize: 14, color: DoctorStyles.slate),
+                                style: TextStyle(fontSize: 14, color: DoctorStyles.slate),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
+                              Text(
                                 'Doctor profile image and contact details are shown here for easy updates.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 14, color: DoctorStyles.slate),
@@ -111,7 +111,7 @@ class DoctorProfileView extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(20),
                           decoration: DoctorStyles.cardDecoration(),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +120,7 @@ class DoctorProfileView extends StatelessWidget {
                                 controller: profileController.fullNameController,
                                 decoration: DoctorStyles.inputDecoration(
                                   label: 'Full name',
-                                  prefixIcon: const Icon(Icons.person_outline, color: DoctorStyles.slateLight),
+                                  prefixIcon: Icon(Icons.person_outline, color: DoctorStyles.slateLight),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -128,7 +128,7 @@ class DoctorProfileView extends StatelessWidget {
                                 controller: profileController.specialtyController,
                                 decoration: DoctorStyles.inputDecoration(
                                   label: 'Specialty',
-                                  prefixIcon: const Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
+                                  prefixIcon: Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -137,7 +137,7 @@ class DoctorProfileView extends StatelessWidget {
                                 keyboardType: TextInputType.phone,
                                 decoration: DoctorStyles.inputDecoration(
                                   label: 'Phone Number',
-                                  prefixIcon: const Icon(Icons.phone_outlined, color: DoctorStyles.slateLight),
+                                  prefixIcon: Icon(Icons.phone_outlined, color: DoctorStyles.slateLight),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -147,7 +147,7 @@ class DoctorProfileView extends StatelessWidget {
                                 decoration: DoctorStyles.inputDecoration(
                                   label: 'Doctor Bio',
                                   hint: 'Enter your professional summary',
-                                  prefixIcon: const Padding(
+                                  prefixIcon: Padding(
                                     padding: EdgeInsets.only(bottom: 60),
                                     child: Icon(Icons.article_outlined, color: DoctorStyles.slateLight),
                                   ),
@@ -175,18 +175,18 @@ class DoctorProfileView extends StatelessWidget {
                               ),
                               if (profileController.statusMessage.value.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 12),
+                                  padding: EdgeInsets.only(top: 12),
                                   child: Text(
                                     profileController.statusMessage.value,
-                                    style: const TextStyle(color: DoctorStyles.success),
+                                    style: TextStyle(color: DoctorStyles.success),
                                   ),
                                 ),
                               if (profileController.errorMessage.value.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 12),
+                                  padding: EdgeInsets.only(top: 12),
                                   child: Text(
                                     profileController.errorMessage.value,
-                                    style: const TextStyle(color: DoctorStyles.danger),
+                                    style: TextStyle(color: DoctorStyles.danger),
                                   ),
                                 ),
                             ],

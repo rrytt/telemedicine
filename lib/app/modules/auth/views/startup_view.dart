@@ -15,10 +15,10 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
-  static const Color _navy = Color(0xFF1E3A5F);
-  static const Color _gradientStart = Color(0xFFEFF3FC);
-  static const Color _gradientMid = Color(0xFFD9E2EF);
-  static const Color _gradientEnd = Color(0xFFC9D5E8);
+  static Color get _navy => Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF1A3A5C);
+  static Color get _gradientStart => Get.isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFEFF3FC);
+  static Color get _gradientMid => Get.isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFD9E2EF);
+  static Color get _gradientEnd => Get.isDarkMode ? const Color(0xFF162033) : const Color(0xFFC9D5E8);
 
   @override
   void initState() {
@@ -47,7 +47,13 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
 
     _animationController.forward();
 
-    Future<void>.microtask(() => Get.find<AuthController>().handleAppStart());
+    Future<void>.microtask(() async {
+      try {
+        await Get.find<AuthController>().handleAppStart();
+      } catch (_) {
+        Get.offAllNamed('/login');
+      }
+    });
   }
 
   @override
@@ -60,12 +66,12 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topLeft,
             radius: 1.2,
             colors: [_gradientStart, _gradientMid, _gradientEnd],
-            stops: [0.0, 0.6, 1.0],
+            stops: const [0.0, 0.6, 1.0],
           ),
         ),
         child: SafeArea(
@@ -82,7 +88,6 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: _navy.withValues(alpha: 0.1),
                         boxShadow: <BoxShadow>[
                           BoxShadow(
                             color: _navy.withValues(alpha: 0.15),
@@ -90,15 +95,14 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                             spreadRadius: 5,
                           ),
                         ],
-                      ),
-                      child: Icon(
-                        Icons.local_hospital,
-                        size: 60,
-                        color: _navy.withValues(alpha: 0.7),
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/icon.jpg'),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
+                    Text(
                       'Telemedicine',
                       style: TextStyle(
                         fontSize: 32,
@@ -126,7 +130,7 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                       ),
                       child: Column(
                         children: <Widget>[
-                          const SizedBox(
+                          SizedBox(
                             width: 32,
                             height: 32,
                             child: CircularProgressIndicator(

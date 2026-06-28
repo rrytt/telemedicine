@@ -10,7 +10,7 @@ class HelpSupportView extends StatelessWidget {
       backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('Help & Support'),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: DoctorStyles.surface.withValues(alpha: 0.94),
         foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
@@ -18,12 +18,12 @@ class HelpSupportView extends StatelessWidget {
         children: <Widget>[
           Container(decoration: DoctorStyles.backgroundGradient),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: DoctorStyles.glassCard,
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(

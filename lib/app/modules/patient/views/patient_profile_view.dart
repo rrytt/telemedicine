@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/supabase/supabase_service.dart';
-import '../../../theme/github_theme.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../controllers/patient_controller.dart';
-import 'package:telemedicine/app/modules/profile/controllers/profile_controller.dart';
 import '../../../routes/app_pages.dart';
+import '../../profile/controllers/profile_controller.dart';
 import '../patient_theme.dart';
 
-
-
-
-
-class PatientProfileView extends StatelessWidget {
+class PatientProfileView extends StatefulWidget {
   const PatientProfileView({super.key});
+
+  @override
+  State<PatientProfileView> createState() => _PatientProfileViewState();
+}
+
+class _PatientProfileViewState extends State<PatientProfileView> {
+  int _currentIndex = 4;
+
+  void _onTabTapped(int index) {
+    if (index == _currentIndex) return;
+    setState(() => _currentIndex = index);
+    switch (index) {
+      case 0:
+        Get.offAllNamed(AppRoutes.patient);
+        break;
+      case 1:
+        Get.toNamed(AppRoutes.doctorSearch);
+        break;
+      case 2:
+        Get.toNamed(AppRoutes.myConsultations);
+        break;
+      case 3:
+        Get.toNamed(AppRoutes.notifications);
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,257 +59,223 @@ class PatientProfileView extends StatelessWidget {
         .length;
 
     return Scaffold(
-      backgroundColor: PatientStyles.navy,
+      backgroundColor: PatientStyles.surface,
       appBar: AppBar(
-        title: const Text('My Profile'),
+        title: const Text(
+          'Me',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        centerTitle: true,
         actions: <Widget>[
+          IconButton(
+            tooltip: 'Edit',
+            onPressed: () => Get.toNamed(AppRoutes.editProfile),
+            icon: const Icon(Icons.edit, color: Colors.white),
+          ),
           IconButton(
             tooltip: 'Settings',
             onPressed: () => Get.toNamed(AppRoutes.patientSettings),
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings, color: Colors.white),
           ),
         ],
         elevation: 0,
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
-        foregroundColor: PatientStyles.textPrimary,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        shape: const Border(
-          bottom: BorderSide(color: PatientStyles.border, width: 1),
+        backgroundColor: PatientStyles.teal,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // صورة الملف الشخصية
+              const SizedBox(height: 24),
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: PatientStyles.border,
+                      ),
+                      child: Obx(() {
+                        if (profileController.avatarUrl.value.isNotEmpty) {
+                          return ClipOval(
+                            child: Image.network(
+                              profileController.avatarUrl.value,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        }
+                        return Icon(
+                          Icons.person,
+                          size: 60,
+                          color: PatientStyles.textSecondary,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      email ?? '@249962366722',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: PatientStyles.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // إحصائيات 2x2
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.4,
+                  children: [
+                    _StatCard(
+                      value: acceptedAppointments.toString(),
+                      label: 'Total Consultations',
+                    ),
+                    _StatCard(
+                      value: pendingAppointments.toString(),
+                      label: 'Favourites',
+                    ),
+                    _StatCard(
+                      value: otherAppointments.toString(),
+                      label: 'Instant Consultations',
+                    ),
+                    _StatCard(
+                      value: '0',
+                      label: 'Specialized Consultations',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Profile Info
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Profile Info.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: PatientStyles.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoField(
+                      label: 'Full name',
+                      value: profileController.fullNameController.text.isNotEmpty
+                          ? profileController.fullNameController.text
+                          : '',
+                    ),
+                    const Divider(height: 1),
+                    _buildInfoField(
+                      label: 'Mobile number',
+                      value: profileController.phoneController.text.isNotEmpty
+                          ? profileController.phoneController.text
+                          : '+249962366722',
+                    ),
+                    const Divider(height: 1),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildInfoField(
+                            label: 'Gender',
+                            value: '',
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 60,
+                        color: PatientStyles.border,
+                        ),
+                        Expanded(
+                          child: _buildInfoField(
+                            label: 'Age',
+                            value: '',
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 1),
+                    _buildInfoField(
+                      label: 'Country',
+                      value: 'Sudan',
+                    ),
+                    const Divider(height: 1),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
-      body: Stack(
-        children: <Widget>[
-          Container(decoration: PatientStyles.backgroundGradient),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: PatientStyles.glassCard,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Stack(
-                          alignment: Alignment.bottomRight,
-                          children: <Widget>[
-                            Obx(
-                              () => CircleAvatar(
-                                radius: 48,
-                                backgroundColor: PatientStyles.blue,
-                                foregroundImage:
-                                    profileController.avatarUrl.value.isNotEmpty
-                                    ? NetworkImage(
-                                            profileController.avatarUrl.value,
-                                          )
-                                          as ImageProvider<Object>?
-                                    : null,
-                                child: profileController.avatarUrl.value.isEmpty
-                                    ? Text(
-                                        email?.isNotEmpty == true
-                                            ? email![0].toUpperCase()
-                                            : 'P',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                            ),
-                            Obx(
-                              () => IconButton(
-                                icon: const Icon(Icons.camera_alt,
-                                    color: PatientStyles.navy),
-                                onPressed: profileController.isUploading.value
-                                    ? null
-                                    : profileController.uploadAvatar,
-                                tooltip: 'Change profile image',
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          profileController.fullNameController.text.isNotEmpty
-                              ? profileController.fullNameController.text
-                              : (email ?? 'Patient'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: PatientStyles.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          email ?? 'No email available',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: PatientStyles.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'Update your profile picture and medical details for better care coordination.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: PatientStyles.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(22),
-                    decoration: PatientStyles.glassCard,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        TextField(
-                          controller: profileController.fullNameController,
-                          decoration: PatientStyles.inputDecoration(
-                            label: 'Full name',
-                            prefixIcon: const Icon(Icons.person_outline, color: PatientStyles.slateLight),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: profileController.phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: PatientStyles.inputDecoration(
-                            label: 'Phone Number',
-                            prefixIcon: const Icon(Icons.phone_outlined, color: PatientStyles.slateLight),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          initialValue:
-                              profileController
-                                  .bloodTypeController
-                                  .text
-                                  .isNotEmpty
-                              ? profileController.bloodTypeController.text
-                              : null,
-                          items:
-                              <String>[
-                                    'A+',
-                                    'A-',
-                                    'B+',
-                                    'B-',
-                                    'AB+',
-                                    'AB-',
-                                    'O+',
-                                    'O-',
-                                  ]
-                                  .map(
-                                    (String v) => DropdownMenuItem<String>(
-                                      value: v,
-                                      child: Text(v),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (String? v) {
-                            if (v != null) {
-                              profileController.bloodTypeController.text = v;
-                            }
-                          },
-                          decoration: PatientStyles.inputDecoration(
-                            label: 'Blood Type',
-                            prefixIcon: const Icon(Icons.bloodtype_outlined, color: PatientStyles.slateLight),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: profileController.medicalRecordController,
-                          maxLines: 5,
-                          decoration: PatientStyles.inputDecoration(
-                            label: 'Medical Record',
-                            hint: 'Detailed medical history or notes',
-                            prefixIcon: const Padding(
-                              padding: EdgeInsets.only(bottom: 80),
-                              child: Icon(Icons.folder_outlined, color: PatientStyles.slateLight),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: profileController.bioController,
-                          maxLines: 3,
-                          decoration: PatientStyles.inputDecoration(
-                            label: 'Medical notes',
-                            hint: 'Optional: share health goals or conditions',
-                            prefixIcon: const Icon(Icons.health_and_safety_outlined, color: PatientStyles.slateLight),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          style: PatientStyles.primaryButton,
-                          onPressed: profileController.isSaving.value
-                              ? null
-                              : profileController.saveProfile,
-                          child: profileController.isSaving.value
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text('Save Profile'),
-                        ),
-                        if (profileController.statusMessage.value.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              profileController.statusMessage.value,
-                              style: const TextStyle(color: GithubTheme.success),
-                            ),
-                          ),
-                        if (profileController.errorMessage.value.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              profileController.errorMessage.value,
-                              style: const TextStyle(color: GithubTheme.danger),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Appointment Summary',
-                    style: PatientStyles.sectionHeader,
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileStatCard(
-                    label: 'Active Consultations',
-                    value: acceptedAppointments,
-                    color: GithubTheme.success,
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileStatCard(
-                    label: 'Pending requests',
-                    value: pendingAppointments,
-                    color: GithubTheme.warning,
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileStatCard(
-                    label: 'Other appointments',
-                    value: otherAppointments,
-                    color: GithubTheme.textMuted,
-                  ),
-                ],
-              ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: PatientStyles.teal,
+        unselectedItemColor: PatientStyles.textSecondary,
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_border),
+            label: 'Telemedicine',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            label: 'My Consults',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none),
+            label: 'Notifications',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Me',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoField({required String label, required String value}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: PatientStyles.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              color: PatientStyles.textPrimary,
             ),
           ),
         ],
@@ -297,48 +284,50 @@ class PatientProfileView extends StatelessWidget {
   }
 }
 
-class _ProfileStatCard extends StatelessWidget {
-  const _ProfileStatCard({
-    required this.label,
+class _StatCard extends StatelessWidget {
+  const _StatCard({
     required this.value,
-    required this.color,
+    required this.label,
   });
 
+  final String value;
   final String label;
-  final int value;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: PatientStyles.cardDecoration(borderRadius: 16),
+      decoration: BoxDecoration(
+        color: PatientStyles.surface,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: PatientStyles.border,
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: PatientStyles.textPrimary,
-                ),
+        padding: EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: PatientStyles.textPrimary,
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: PatientStyles.textSecondary,
               ),
-              child: Text(
-                value.toString(),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),

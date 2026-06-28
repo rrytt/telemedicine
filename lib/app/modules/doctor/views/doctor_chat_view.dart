@@ -3,27 +3,21 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/supabase/supabase_service.dart';
-import '../../../theme/github_theme.dart';
 import '../controllers/doctor_controller.dart';
+import '../doctor_theme.dart';
 
 class DoctorChatView extends GetView<DoctorController> {
   const DoctorChatView({super.key});
 
-  Color get bgColor => Get.isDarkMode ? GithubTheme.darkBg : GithubTheme.bg;
-  Color get cardColor =>
-      Get.isDarkMode ? GithubTheme.darkSurface : GithubTheme.surface;
-  Color get borderColor =>
-      Get.isDarkMode ? GithubTheme.darkBorder : GithubTheme.border;
-  Color get textPrimary =>
-      Get.isDarkMode ? GithubTheme.darkTextPrimary : GithubTheme.textPrimary;
-  Color get textSecondary => Get.isDarkMode
-      ? GithubTheme.darkTextSecondary
-      : GithubTheme.textSecondary;
-  Color get accentBlue => GithubTheme.info;
-  Color get successGreen => GithubTheme.success;
-  Color get headerColor =>
-      Get.isDarkMode ? GithubTheme.darkHeader : GithubTheme.mutedSurface;
-  Color get dangerRed => GithubTheme.danger;
+  Color get bgColor => DoctorStyles.surface;
+  Color get cardColor => DoctorStyles.surface;
+  Color get borderColor => DoctorStyles.border;
+  Color get textPrimary => DoctorStyles.textPrimary;
+  Color get textSecondary => DoctorStyles.textSecondary;
+  Color get accentBlue => DoctorStyles.blue;
+  Color get successGreen => DoctorStyles.success;
+  Color get headerColor => DoctorStyles.surface;
+  Color get dangerRed => DoctorStyles.danger;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +39,7 @@ class DoctorChatView extends GetView<DoctorController> {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: successGreen.withValues(alpha: 0.1),
                 border: Border.all(color: successGreen.withValues(alpha: 0.4)),
@@ -146,8 +140,8 @@ class DoctorChatView extends GetView<DoctorController> {
         children: [
           // Clinical Notes Section
           Container(
-            margin: const EdgeInsets.only(bottom: 12.0),
-            padding: const EdgeInsets.all(16.0),
+            margin: EdgeInsets.only(bottom: 12.0),
+            padding: EdgeInsets.all(16.0),
             decoration: BoxDecoration(
               color: cardColor,
               borderRadius: BorderRadius.circular(16.0),
@@ -210,8 +204,8 @@ class DoctorChatView extends GetView<DoctorController> {
           const SizedBox(height: 12),
           // Documents Section
           Container(
-            margin: const EdgeInsets.only(bottom: 12.0),
-            padding: const EdgeInsets.symmetric(
+            margin: EdgeInsets.only(bottom: 12.0),
+            padding: EdgeInsets.symmetric(
               horizontal: 14.0,
               vertical: 12.0,
             ),
@@ -245,7 +239,7 @@ class DoctorChatView extends GetView<DoctorController> {
                 Obx(() {
                   if (controller.documents.isEmpty) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
                         'No files uploaded yet',
                         style: TextStyle(color: textSecondary, fontSize: 12),
@@ -262,8 +256,8 @@ class DoctorChatView extends GetView<DoctorController> {
                         return Container(
                           width: 120,
                           height: double.infinity,
-                          margin: const EdgeInsets.only(right: 8.0),
-                          padding: const EdgeInsets.all(6.0),
+                          margin: EdgeInsets.only(right: 8.0),
+                          padding: EdgeInsets.all(6.0),
                           decoration: BoxDecoration(
                             color: bgColor,
                             border: Border.all(color: borderColor),
@@ -318,7 +312,7 @@ class DoctorChatView extends GetView<DoctorController> {
               if (controller.messagesError.isNotEmpty) {
                 return Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: EdgeInsets.all(16.0),
                     child: Text(
                       controller.messagesError.value,
                       textAlign: TextAlign.center,
@@ -336,7 +330,7 @@ class DoctorChatView extends GetView<DoctorController> {
                 );
               }
               return ListView.builder(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(16.0),
                 itemCount: controller.messages.length,
                 itemBuilder: (context, index) {
                   final msg = controller.messages[index];
@@ -377,7 +371,7 @@ class DoctorChatView extends GetView<DoctorController> {
   }) {
     final String? attachmentName = msg.attachmentName;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
+      margin: EdgeInsets.only(bottom: 16.0),
       decoration: BoxDecoration(
         color: cardColor,
         border: Border.all(
@@ -390,7 +384,7 @@ class DoctorChatView extends GetView<DoctorController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: 12.0,
               vertical: 8.0,
             ),
@@ -424,7 +418,7 @@ class DoctorChatView extends GetView<DoctorController> {
                   children: [
                     if (status != null && status.isNotEmpty)
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 2,
                         ),
@@ -453,7 +447,7 @@ class DoctorChatView extends GetView<DoctorController> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -472,7 +466,7 @@ class DoctorChatView extends GetView<DoctorController> {
                     GestureDetector(
                       onTap: () => controller.openImage(msg),
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 8),
+                        padding: EdgeInsets.only(top: 8),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: Hero(
@@ -541,7 +535,7 @@ class DoctorChatView extends GetView<DoctorController> {
                     )
                   else
                     Padding(
-                      padding: const EdgeInsets.only(top: 8),
+                      padding: EdgeInsets.only(top: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -568,7 +562,7 @@ class DoctorChatView extends GetView<DoctorController> {
 
   Widget _buildInputArea() {
     return Container(
-      padding: const EdgeInsets.all(14.0),
+      padding: EdgeInsets.all(14.0),
       decoration: BoxDecoration(
         color: cardColor,
         border: Border(top: BorderSide(color: borderColor, width: 1.0)),
@@ -583,8 +577,8 @@ class DoctorChatView extends GetView<DoctorController> {
                 return const SizedBox.shrink();
               }
               return Container(
-                margin: const EdgeInsets.only(bottom: 8.0),
-                padding: const EdgeInsets.all(8.0),
+                margin: EdgeInsets.only(bottom: 8.0),
+                padding: EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
                   color: controller.uploadStatusError.value
                       ? dangerRed.withValues(alpha: 0.1)
@@ -643,7 +637,7 @@ class DoctorChatView extends GetView<DoctorController> {
                 hintStyle: TextStyle(color: textSecondary),
                 filled: true,
                 fillColor: bgColor,
-                contentPadding: const EdgeInsets.symmetric(
+                contentPadding: EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
                 ),
@@ -708,7 +702,7 @@ class DoctorChatView extends GetView<DoctorController> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(6.0),
                                 ),
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 12,
                                 ),

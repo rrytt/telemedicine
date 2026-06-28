@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../theme/github_theme.dart';
 import '../controllers/settings_controller.dart';
 import '../doctor_theme.dart';
 
@@ -18,7 +17,7 @@ class TwoFactorView extends StatelessWidget {
       backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('Two-Factor Authentication'),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: DoctorStyles.surface.withValues(alpha: 0.94),
         foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
@@ -26,15 +25,15 @@ class TwoFactorView extends StatelessWidget {
         children: <Widget>[
           Container(decoration: DoctorStyles.backgroundGradient),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: DoctorStyles.glassCard,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Two-factor authentication adds an extra security layer to your account. '
                     'When enabled, you will need an additional verification step during login.',
                     style: TextStyle(
@@ -45,7 +44,7 @@ class TwoFactorView extends StatelessWidget {
                   const SizedBox(height: 24),
                   Obx(() {
                     return SwitchListTile(
-                      tileColor: GithubTheme.mutedSurface,
+                      tileColor: DoctorStyles.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -70,7 +69,7 @@ class TwoFactorView extends StatelessWidget {
                     );
                   }),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'This screen allows you to enable or disable two-factor authentication for your account. '
                     'A real implementation would use a secure verification flow with an authentication app or SMS code.',
                     style: TextStyle(
@@ -107,7 +106,7 @@ class TwoFactorView extends StatelessWidget {
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: DoctorStyles.surface,
                 borderRadius: BorderRadius.circular(12),
@@ -125,7 +124,7 @@ class TwoFactorView extends StatelessWidget {
               controller: codeController,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Verification Code',
-                prefixIcon: const Icon(Icons.pin_outlined, color: DoctorStyles.slateLight),
+                prefixIcon: Icon(Icons.pin_outlined, color: DoctorStyles.slateLight),
               ),
             ),
           ],

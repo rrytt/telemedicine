@@ -40,7 +40,7 @@ class _AboutViewState extends State<AboutView> {
       backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('About'),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: DoctorStyles.surface.withValues(alpha: 0.94),
         foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
@@ -48,33 +48,35 @@ class _AboutViewState extends State<AboutView> {
         children: <Widget>[
           Container(decoration: DoctorStyles.backgroundGradient),
           SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               decoration: DoctorStyles.glassCard,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: const BoxDecoration(
+                    width: 108,
+                    height: 108,
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF1F2F4F), Color(0xFF2C4C7C)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                      boxShadow: [
+                        BoxShadow(
+                          color: DoctorStyles.navy.withValues(alpha: 0.25),
+                          blurRadius: 12,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/icon.jpg'),
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.local_hospital,
-                      size: 72,
-                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Telemedicine Calls',
                     style: TextStyle(
                       fontSize: 24,
@@ -85,13 +87,13 @@ class _AboutViewState extends State<AboutView> {
                   const SizedBox(height: 8),
                   Text(
                     'Version $_version ($_buildNumber)',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       color: DoctorStyles.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'A patient-friendly telemedicine platform that connects you with trusted healthcare professionals through secure video visits and messaging.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -100,7 +102,7 @@ class _AboutViewState extends State<AboutView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Features:',
@@ -112,7 +114,7 @@ class _AboutViewState extends State<AboutView> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     '• Secure video consultations\n'
                     '• Real-time messaging\n'
                     '• Appointment scheduling\n'
@@ -125,7 +127,7 @@ class _AboutViewState extends State<AboutView> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const Text(
+                  Text(
                     '© 2026 Telemedicine Inc.\nAll rights reserved.',
                     textAlign: TextAlign.center,
                     style: TextStyle(

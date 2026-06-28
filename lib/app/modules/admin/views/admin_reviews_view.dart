@@ -28,15 +28,15 @@ class AdminReviewsView extends StatelessWidget {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 20, 12),
+      padding: EdgeInsets.fromLTRB(8, 8, 20, 12),
       child: Row(
         children: <Widget>[
           IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+            icon: Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
             onPressed: () => Get.back(),
           ),
           const Spacer(),
-          const Text(
+          Text(
             'Doctor Reviews',
             style: TextStyle(
               fontSize: 18,
@@ -53,7 +53,7 @@ class AdminReviewsView extends StatelessWidget {
 
   Widget _buildList(AdminController controller) {
     if (controller.isLoadingReviews.value) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AdminStyles.navy),
       );
     }
@@ -61,15 +61,15 @@ class AdminReviewsView extends StatelessWidget {
     if (controller.reviewsError.value.isNotEmpty) {
       return Center(
         child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AdminStyles.danger.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             controller.reviewsError.value,
-            style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+            style: TextStyle(color: AdminStyles.danger, fontSize: 13),
           ),
         ),
       );
@@ -79,7 +79,7 @@ class AdminReviewsView extends StatelessWidget {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const <Widget>[
+          children: [
             Icon(Icons.star_outline_rounded, size: 56, color: AdminStyles.slateLight),
             SizedBox(height: 12),
             Text('No reviews yet', style: TextStyle(
@@ -93,13 +93,13 @@ class AdminReviewsView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => controller.loadReviews(),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         itemCount: controller.reviews.length,
         itemBuilder: (BuildContext context, int index) {
           final review = controller.reviews[index];
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.all(16),
             decoration: AdminStyles.cardDecoration(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,16 +117,16 @@ class AdminReviewsView extends StatelessWidget {
                               (review.patientName?.isNotEmpty ?? false)
                                   ? review.patientName![0].toUpperCase()
                                   : '?',
-                              style: const TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.warning, fontSize: 10),
+                              style: TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.warning, fontSize: 10),
                             )
                           : null,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       review.patientName ?? 'Anonymous',
-                      style: const TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary, fontSize: 13),
+                      style: TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary, fontSize: 13),
                     ),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 4),
                       child: Icon(Icons.arrow_forward_rounded, size: 14, color: AdminStyles.slateLight),
                     ),
@@ -141,7 +141,7 @@ class AdminReviewsView extends StatelessWidget {
                               (review.doctorName?.isNotEmpty ?? false)
                                   ? review.doctorName![0].toUpperCase()
                                   : '?',
-                              style: const TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.success, fontSize: 10),
+                              style: TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.success, fontSize: 10),
                             )
                           : null,
                     ),
@@ -149,7 +149,7 @@ class AdminReviewsView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         review.doctorName ?? 'Unknown Doctor',
-                        style: const TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary, fontSize: 13),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary, fontSize: 13),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -170,7 +170,7 @@ class AdminReviewsView extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     review.reviewText!,
-                    style: const TextStyle(color: AdminStyles.textSecondary, fontSize: 13),
+                    style: TextStyle(color: AdminStyles.textSecondary, fontSize: 13),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -180,11 +180,11 @@ class AdminReviewsView extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(review.createdAt),
-                      style: const TextStyle(fontSize: 11, color: AdminStyles.slateLight),
+                      style: TextStyle(fontSize: 11, color: AdminStyles.slateLight),
                     ),
                     const Spacer(),
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert_rounded, color: AdminStyles.slate, size: 20),
+                      icon: Icon(Icons.more_vert_rounded, color: AdminStyles.slate, size: 20),
                       onSelected: (String value) {
                         if (value == 'delete') {
                           _showDeleteConfirm(context, controller, review);
@@ -206,7 +206,7 @@ class AdminReviewsView extends StatelessWidget {
 
   Widget _ratingBadge(int rating) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: const Color(0xFFFEA500).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
@@ -236,24 +236,24 @@ class AdminReviewsView extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Delete Review', style: TextStyle(
+        title: Text('Delete Review', style: TextStyle(
           fontWeight: FontWeight.w700, color: AdminStyles.textPrimary,
         )),
-        content: const Text(
+        content: Text(
           'Are you sure you want to delete this review? This action cannot be undone.',
           style: TextStyle(color: AdminStyles.textSecondary),
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
+            child: Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.deleteReview(review.id);
             },
-            child: const Text('Delete', style: TextStyle(color: AdminStyles.danger)),
+            child: Text('Delete', style: TextStyle(color: AdminStyles.danger)),
           ),
         ],
       ),

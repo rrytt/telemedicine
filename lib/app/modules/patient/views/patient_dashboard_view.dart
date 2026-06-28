@@ -1,15 +1,10 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../theme/github_theme.dart';
-import '../../auth/controllers/auth_controller.dart';
 import '../../../routes/app_pages.dart';
-import '../patient_theme.dart';
-
 import '../controllers/patient_controller.dart';
 import '../controllers/doctor_posts_controller.dart';
-import '_bottom_nav_icon_button.dart';
-
+import '../patient_theme.dart';
 
 class PatientDashboardView extends StatelessWidget {
   const PatientDashboardView({super.key});
@@ -17,253 +12,374 @@ class PatientDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PatientController controller = Get.put(PatientController());
-    // AuthController kept for backward compatibility with other UI parts.
-    // Removed settings/edit-profile buttons from this screen.
-    Get.find<AuthController>();
-
-
-    return Scaffold(
-      backgroundColor: PatientStyles.navy,
-      appBar: AppBar(
-        title: const Text('My Health Dashboard'),
-        elevation: 0,
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
-        foregroundColor: PatientStyles.textPrimary,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        titleTextStyle: const TextStyle(
-          color: PatientStyles.textPrimary,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
-        shape: const Border(
-          bottom: BorderSide(color: PatientStyles.border, width: 1),
-        ),
-        actions: const <Widget>[
-          SizedBox(width: 4),
-        ],
-      ),
-      body: Stack(
-        children: <Widget>[
-          Container(decoration: PatientStyles.backgroundGradient),
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await controller.loadAppointments();
-              },
-              edgeOffset: 80,
-              color: PatientStyles.blue,
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: _doctorPostsSliver(context),
-                  ),
-                  const SliverPadding(padding: EdgeInsets.only(bottom: 20)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: const [
-                  Colors.white,
-                  Color(0xFFF5FFFE),
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: PatientStyles.blue.withValues(alpha: 0.15),
-                  blurRadius: 40,
-                  offset: const Offset(0, -12),
-                  spreadRadius: 4,
-                ),
-              ],
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  BottomNavIconButton(
-                    icon: Icons.home_rounded,
-                    isSelected: true,
-                    onTap: () => Get.offAllNamed(AppRoutes.patient),
-                  ),
-                  BottomNavIconButton(
-                    icon: Icons.search_rounded,
-                    isSelected: false,
-                    onTap: () => Get.toNamed(AppRoutes.doctorSearch),
-                  ),
-                  BottomNavIconButton(
-                    icon: Icons.chat_rounded,
-                    isSelected: false,
-                    onTap: () => Get.toNamed(AppRoutes.chat),
-                  ),
-                  BottomNavIconButton(
-                    icon: Icons.person_rounded,
-                    isSelected: false,
-                    onTap: () => Get.toNamed(AppRoutes.patientProfile),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Removed edit profile dialog from this screen.
-  // The dialog is now shown from PatientProfileView.
-
-  Widget _doctorPostsSliver(BuildContext context) {
-    // Local controller to avoid touching global Get.find lifecycle too much.
     final DoctorPostsController postsController = Get.put(DoctorPostsController());
 
-    return Obx(() {
-      if (postsController.isLoading.value) {
-        return SliverToBoxAdapter(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: PatientStyles.cardDecoration(borderRadius: 16),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-        );
-      }
-
-      if (postsController.error.value.isNotEmpty) {
-        return SliverToBoxAdapter(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: PatientStyles.cardDecoration(borderRadius: 16),
-            child: Text(
-              postsController.error.value,
-              style: const TextStyle(color: GithubTheme.danger),
-            ),
-          ),
-        );
-      }
-
-      if (postsController.posts.isEmpty) {
-        return SliverToBoxAdapter(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(60),
-            decoration: PatientStyles.cardDecoration(borderRadius: 18),
-            child: const Text(
-              'No doctor posts yet.',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: PatientStyles.textSecondary,
+    return Scaffold(
+      backgroundColor: PatientStyles.surface,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: Container(
+                color: PatientStyles.teal,
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.asset('assets/images/icon.jpg', width: 24, height: 24, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Telemedicine',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Hi , How can I help you?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Consult doctors, order medication, or get care at home.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-        );
-      }
-
-      return SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const Text(
-              'Doctor Posts',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: PatientStyles.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...postsController.posts.map((post) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: PatientStyles.cardDecoration(borderRadius: 16),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  leading: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: PatientStyles.blue.withValues(alpha: 0.16),
-                    backgroundImage: post.doctorAvatarUrl != null
-                        ? NetworkImage(post.doctorAvatarUrl!)
-                        : null,
-                    child: post.doctorAvatarUrl == null
-                        ? Text(
-                            (post.doctorName?.isNotEmpty ?? false)
-                                ? post.doctorName![0].toUpperCase()
-                                : 'D',
-                            style: const TextStyle(
+            SliverToBoxAdapter(
+              child: Transform.translate(
+                offset: const Offset(0, -20),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    height: 220,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      image: const DecorationImage(
+                        image: NetworkImage('https://images.skynewsarabia.com/images/v4/2021/02/24/1417556/800/450/1-1417556.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xCCB71C1C),
+                            Color(0x99C0392B),
+                          ],
+                        ),
+                      ),
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Get Help Now',
+                            style: TextStyle(
                               color: Colors.white,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
-                          )
-                        : null,
-                  ),
-                  title: Text(
-                    post.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: PatientStyles.textPrimary,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Video or chat with a licensed doctor - prescriptions & sick leave included.',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: () => Get.toNamed(AppRoutes.doctorSearch),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: PatientStyles.teal,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Consult Now',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.chevron_right, size: 20),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  subtitle: Text(
-                    post.body,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: PatientStyles.textSecondary),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(
-                          post.userLiked ? Icons.favorite : Icons.favorite_border,
-                          color: post.userLiked ? GithubTheme.danger : PatientStyles.slateLight,
-                          size: 18,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                        tooltip: 'Like',
-                        onPressed: () => postsController.toggleLike(post),
-                      ),
-                      const SizedBox(width: 2),
+                ),
+              ),
+            ),
+            Obx(() {
+              if (postsController.isLoading.value) {
+                return const SliverToBoxAdapter(
+                  child: Center(child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  )),
+                );
+              }
+              if (postsController.error.value.isNotEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              if (postsController.posts.isEmpty) {
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              }
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        post.likesCount.toString(),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: PatientStyles.slateLight,
-                          fontWeight: FontWeight.w600,
+                        'Doctor Posts',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: PatientStyles.textPrimary,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      ...postsController.posts.map((post) => Container(
+                        margin: EdgeInsets.only(bottom: 12),
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: PatientStyles.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: PatientStyles.border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundImage: post.doctorAvatarUrl != null
+                                      ? NetworkImage(post.doctorAvatarUrl!)
+                                      : null,
+                                  child: post.doctorAvatarUrl == null
+                                      ? Text(
+                                          (post.doctorName?.isNotEmpty ?? false)
+                                              ? post.doctorName![0].toUpperCase()
+                                              : 'D',
+                                          style: TextStyle(
+                                            color: PatientStyles.teal,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    post.doctorName ?? 'Doctor',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                      color: PatientStyles.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  _timeAgo(post.createdAt),
+                                  style: TextStyle(fontSize: 11, color: PatientStyles.textSecondary),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              post.title,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: PatientStyles.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              post.body,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 13, color: PatientStyles.textSecondary, height: 1.4),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    post.userLiked ? Icons.favorite : Icons.favorite_border,
+                                    color: post.userLiked ? Colors.red : PatientStyles.textSecondary,
+                                    size: 20,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                  onPressed: () => postsController.toggleLike(post),
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${post.likesCount}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: PatientStyles.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Icon(Icons.chat_bubble_outline, size: 18, color: PatientStyles.textSecondary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${post.comments.length}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: PatientStyles.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )),
                     ],
                   ),
                 ),
               );
             }),
-            const SizedBox(height: 4),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
           ],
         ),
-      );
-    });
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: PatientStyles.blueAccent,
+        onPressed: () => _showComplaintDialog(context, controller),
+        child: const Icon(Icons.report_problem, color: Colors.white),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: PatientStyles.teal,
+        unselectedItemColor: PatientStyles.textSecondary,
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 0) return;
+          switch (index) {
+            case 1:
+              Get.toNamed(AppRoutes.doctorSearch);
+            case 2:
+              Get.toNamed(AppRoutes.myConsultations);
+            case 3:
+              Get.toNamed(AppRoutes.notifications);
+            case 4:
+              Get.toNamed(AppRoutes.patientProfile);
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Telemedicine'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'My Consults'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Notifications'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Me'),
+        ],
+      ),
+    );
   }
 
+  void _showComplaintDialog(BuildContext context, PatientController controller) {
+    controller.complaintTitleController.clear();
+    controller.complaintBodyController.clear();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Submit a Complaint'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller.complaintTitleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller.complaintBodyController,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              controller.submitComplaint();
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: PatientStyles.teal),
+            child: const Text('Submit', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays}d ago';
+    if (diff.inHours > 0) return '${diff.inHours}h ago';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
+    return 'just now';
+  }
 }

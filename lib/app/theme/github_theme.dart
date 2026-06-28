@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class GithubTheme {
   // Medical-themed colors
-  static const Color primary = Color(0xFF2563EB); // Medical blue
-  static const Color secondary = Color(0xFF10B981); // Medical green
-  static const Color accent = Color(0xFFF59E0B); // Warm orange for warnings
-  static const Color error = Color(0xFFEF4444); // Medical red
-  static const Color success = Color(0xFF10B981); // Success green
+  static const Color primary = Color(0xFF4ECDC4);
+  static const Color secondary = Color(0xFF10B981);
+  static const Color accent = Color(0xFFF59E0B);
+  static const Color error = Color(0xFFEF4444);
+  static const Color success = Color(0xFF10B981);
 
   // Background colors
   static const Color bg = Color(0xFFF8FAFC); // Light medical background
@@ -24,7 +24,7 @@ class GithubTheme {
   static const Color textMuted = Color(0xFF94A3B8);
 
   // Status colors
-  static const Color info = Color(0xFF3B82F6);
+  static const Color info = Color(0xFF4ECDC4);
   static const Color warning = Color(0xFFF59E0B);
   static const Color danger = Color(0xFFEF4444);
 
@@ -37,7 +37,7 @@ class GithubTheme {
 
   // Medical gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+    colors: [Color(0xFF4ECDC4), Color(0xFF3BB8B0)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -49,19 +49,19 @@ class GithubTheme {
   );
 
   static const LinearGradient heroGradient = LinearGradient(
-    colors: [Color(0xFF2563EB), Color(0xFF14B8A6)],
+    colors: [Color(0xFF4ECDC4), Color(0xFF2980B9)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient loginBackgroundGradient = LinearGradient(
-    colors: [Color(0xFF03131F), Color(0xFF0E4F6B), Color(0xFF14B8A6)],
+    colors: [Color(0xFF03131F), Color(0xFF0E4F6B), Color(0xFF4ECDC4)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient startupBackgroundGradient = LinearGradient(
-    colors: [Color(0xFF2563EB), Color(0xFF1E40AF), Color(0xFF1E3A8A)],
+    colors: [Color(0xFF4ECDC4), Color(0xFF2980B9), Color(0xFF1A3A5C)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );

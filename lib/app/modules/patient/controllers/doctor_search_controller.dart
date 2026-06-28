@@ -20,12 +20,15 @@ class DoctorSearchItem {
   final int reviewCount;
 }
 
+enum SortOption { nameAsc, nameDesc, ratingDesc, ratingAsc }
+
 class DoctorSearchController extends GetxController {
   final RxList<DoctorSearchItem> doctors = <DoctorSearchItem>[].obs;
   final RxList<DoctorSearchItem> filteredDoctors = <DoctorSearchItem>[].obs;
   final TextEditingController searchController = TextEditingController();
   final RxBool isLoading = false.obs;
   final RxString error = ''.obs;
+  final Rx<SortOption> sortOption = SortOption.nameAsc.obs;
 
   @override
   void onInit() {
@@ -52,6 +55,27 @@ class DoctorSearchController extends GetxController {
         ),
       );
     }
+    _applySort();
+  }
+
+  void setSortOption(SortOption option) {
+    sortOption.value = option;
+    _applySort();
+  }
+
+  void _applySort() {
+    filteredDoctors.sort((a, b) {
+      switch (sortOption.value) {
+        case SortOption.nameAsc:
+          return a.name.compareTo(b.name);
+        case SortOption.nameDesc:
+          return b.name.compareTo(a.name);
+        case SortOption.ratingDesc:
+          return b.averageRating.compareTo(a.averageRating);
+        case SortOption.ratingAsc:
+          return a.averageRating.compareTo(b.averageRating);
+      }
+    });
   }
 
   Future<String> _signedAvatarUrl(String path) async {
@@ -114,7 +138,8 @@ class DoctorSearchController extends GetxController {
       );
 
       doctors.assignAll(list);
-      filteredDoctors.assignAll(list);
+      _applySort();
+      filteredDoctors.assignAll(doctors);
 
       if (list.isEmpty) {
         error.value = 'No registered doctors found yet.';

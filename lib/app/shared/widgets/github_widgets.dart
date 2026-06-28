@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../theme/github_theme.dart';
-import '../../theme/theme_controller.dart';
+const Color _accentSlate = Color(0xFF4A627A);
+const Color _borderLight = Color(0xFFE2E8F0);
+const Color _darkSurface = Color(0xFF1E293B);
+const Color _darkBorder = Color(0xFF334155);
+const Color _darkTextSecondary = Color(0xFF94A3B8);
+const Color _darkTextPrimary = Color(0xFFF1F5F9);
+const Color _white = Color(0xFFFFFFFF);
+
+bool get _isDark => Get.isDarkMode;
+
+Color get _textSecondary => _isDark ? _darkTextSecondary : _accentSlate;
+Color get _textPrimary => _isDark ? _darkTextPrimary : const Color(0xFF1A3A5C);
+Color get _border => _isDark ? _darkBorder : _borderLight;
+Color get _surface => _isDark ? _darkSurface : _white;
 
 class InboxNotificationItem {
   const InboxNotificationItem({
@@ -50,13 +62,11 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
         type: 'Report',
       ),
     ];
-    final ThemeController themeController = Get.find<ThemeController>();
-    final bool isDark = themeController.themeMode.value == ThemeMode.dark;
 
     return AppBar(
       title: Row(
         children: <Widget>[
-          const Icon(Icons.local_hospital_outlined, size: 20),
+          Image.asset('assets/images/icon.jpg', width: 20, height: 20, fit: BoxFit.cover),
           const SizedBox(width: 8),
           Flexible(
             child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -64,13 +74,6 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: <Widget>[
-        IconButton(
-          tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
-          onPressed: themeController.toggleThemeMode,
-          icon: Icon(
-            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-          ),
-        ),
         if (onLogout != null)
           TextButton.icon(
             onPressed: onLogout,
@@ -115,7 +118,7 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
                                 ? Icons.event_outlined
                                 : Icons.description_outlined,
                             size: 16,
-                            color: GithubTheme.textSecondary,
+                            color: _textSecondary,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -133,27 +136,27 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
                                       ),
                                     ),
                                     if (item.unread)
-                                      const GithubBadge(
+                                      GithubBadge(
                                         text: 'New',
-                                        textColor: GithubTheme.info,
-                                        bgColor: GithubTheme.infoSurface,
+                                        textColor: const Color(0xFF4ECDC4),
+                                        bgColor: _isDark ? const Color(0xFF1E293B) : const Color(0xFFDDF4FF),
                                       ),
                                   ],
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   item.description,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: GithubTheme.textSecondary,
+                                    color: _textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   item.time,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: GithubTheme.textSecondary,
+                                    color: _textSecondary,
                                   ),
                                 ),
                               ],
@@ -168,9 +171,9 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         const SizedBox(width: 6),
       ],
-      bottom: const PreferredSize(
-        preferredSize: Size.fromHeight(1),
-        child: Divider(height: 1, color: GithubTheme.border),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: _border),
       ),
     );
   }
@@ -198,18 +201,18 @@ class GithubSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         border: showDivider
-            ? const Border(bottom: BorderSide(color: GithubTheme.border))
+            ? Border(bottom: BorderSide(color: _border))
             : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: _textPrimary)),
           const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: GithubTheme.textSecondary,
+            style: TextStyle(
+              color: _textSecondary,
               fontSize: 12,
             ),
           ),
@@ -276,13 +279,13 @@ class GithubFeatureCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(icon, color: GithubTheme.textSecondary),
+            Icon(icon, color: _textSecondary),
             const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+            Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: _textPrimary)),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(color: GithubTheme.textSecondary),
+              style: TextStyle(color: _textSecondary),
             ),
             const SizedBox(height: 12),
             FilledButton(onPressed: onTap, child: Text(actionText)),
@@ -342,8 +345,8 @@ class SidebarLink extends StatelessWidget {
       dense: true,
       visualDensity: VisualDensity.compact,
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      leading: Icon(icon, size: 18, color: GithubTheme.textSecondary),
-      title: Text(text, style: const TextStyle(fontSize: 14)),
+      leading: Icon(icon, size: 18, color: _textSecondary),
+      title: Text(text, style: TextStyle(fontSize: 14, color: _textPrimary)),
     );
   }
 }
@@ -369,30 +372,43 @@ class GithubDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: GithubTheme.surface,
+      backgroundColor: _surface,
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            decoration: const BoxDecoration(gradient: GithubTheme.heroGradient),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1A3A5C), Color(0xFF4ECDC4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             margin: EdgeInsets.zero,
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                menuTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset('assets/images/icon.jpg', width: 48, height: 48, fit: BoxFit.cover),
                 ),
-              ),
+                const SizedBox(height: 12),
+                Text(
+                  menuTitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
           ...items.map(
             (GithubDrawerItem item) => ListTile(
-              leading: Icon(item.icon),
-              title: Text(item.label),
+              leading: Icon(item.icon, color: _textSecondary),
+              title: Text(item.label, style: TextStyle(color: _textPrimary)),
               onTap: () {
                 Get.back();
                 item.onTap();

@@ -10,7 +10,7 @@ class TermsOfServiceView extends StatelessWidget {
       backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('Terms of Service'),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: DoctorStyles.surface.withValues(alpha: 0.94),
         foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
@@ -18,13 +18,13 @@ class TermsOfServiceView extends StatelessWidget {
         children: <Widget>[
           Container(decoration: DoctorStyles.backgroundGradient),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
               decoration: DoctorStyles.glassCard,
               child: ListView(
-                children: const [
+                children: [
                   Text(
                     'Terms of Service',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: DoctorStyles.textPrimary),

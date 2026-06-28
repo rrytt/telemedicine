@@ -4,7 +4,6 @@ import '../../../routes/app_pages.dart';
 import '../../../core/supabase/doctor_posts_service.dart';
 import '../../../core/supabase/doctor_reviews_service.dart';
 import '../../auth/controllers/auth_controller.dart';
-import '../../../theme/github_theme.dart';
 import '../../../shared/widgets/github_widgets.dart';
 import '../controllers/doctor_controller.dart';
 import '../doctor_theme.dart';
@@ -65,7 +64,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
               controller: titleController,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Post title',
-                prefixIcon: const Icon(Icons.title, color: DoctorStyles.slateLight),
+                prefixIcon: Icon(Icons.title, color: DoctorStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -74,7 +73,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
               maxLines: 5,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Post content',
-                prefixIcon: const Padding(
+                prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: 80),
                   child: Icon(Icons.article_outlined, color: DoctorStyles.slateLight),
                 ),
@@ -130,7 +129,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
               controller: titleController,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Post title',
-                prefixIcon: const Icon(Icons.title, color: DoctorStyles.slateLight),
+                prefixIcon: Icon(Icons.title, color: DoctorStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -139,7 +138,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
               maxLines: 5,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Post content',
-                prefixIcon: const Padding(
+                prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: 80),
                   child: Icon(Icons.article_outlined, color: DoctorStyles.slateLight),
                 ),
@@ -185,11 +184,11 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
         title: const Text('Doctor Dashboard'),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: DoctorStyles.surface.withValues(alpha: 0.94),
         foregroundColor: DoctorStyles.textPrimary,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
-        shape: const Border(
+        shape: Border(
           bottom: BorderSide(color: DoctorStyles.border, width: 1),
         ),
         actions: [
@@ -208,7 +207,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
                     right: 6,
                     top: 6,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: DoctorStyles.navy,
                         shape: BoxShape.circle,
@@ -268,7 +267,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
           : RefreshIndicator(
               onRefresh: _loadPosts,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 children: <Widget>[
                   Obx(() {
                     final total = controller.queue.length;
@@ -293,18 +292,18 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'My Posts',
                     style: DoctorStyles.sectionHeader,
                   ),
                   const SizedBox(height: 12),
                   if (_posts.isEmpty)
-                    const Center(
+                    Center(
                       child: Padding(
                         padding: EdgeInsets.all(32),
                         child: Text(
                           'No posts yet. Create your first post above.',
-                          style: TextStyle(color: GithubTheme.textSecondary),
+                          style: TextStyle(color: DoctorStyles.textSecondary),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -323,11 +322,11 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
   Widget _buildStatsRow(int total, int pending, int active) {
     return Row(
       children: <Widget>[
-        Expanded(child: _StatCard(label: 'Total', value: total.toString(), color: GithubTheme.primary)),
+        Expanded(child: _StatCard(label: 'Total', value: total.toString(), color: DoctorStyles.blue)),
         const SizedBox(width: 10),
-        Expanded(child: _StatCard(label: 'Pending', value: pending.toString(), color: GithubTheme.warning)),
+        Expanded(child: _StatCard(label: 'Pending', value: pending.toString(), color: DoctorStyles.warning)),
         const SizedBox(width: 10),
-        Expanded(child: _StatCard(label: 'Active', value: active.toString(), color: GithubTheme.success)),
+        Expanded(child: _StatCard(label: 'Active', value: active.toString(), color: DoctorStyles.success)),
       ],
     );
   }
@@ -339,10 +338,10 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
     final String createdAt = post['created_at'] as String? ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: 12),
       decoration: DoctorStyles.cardDecoration(borderRadius: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -355,7 +354,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
                     children: <Widget>[
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: DoctorStyles.textPrimary,
@@ -366,7 +365,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
                       const SizedBox(height: 4),
                       Text(
                         createdAt,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: DoctorStyles.textSecondary,
                         ),
@@ -375,7 +374,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: DoctorStyles.slateLight),
+                  icon: Icon(Icons.more_vert, color: DoctorStyles.slateLight),
                   onSelected: (value) {
                     if (value == 'edit') {
                       _showEditPostDialog(post);
@@ -417,7 +416,7 @@ class _DoctorDashboardViewState extends State<DoctorDashboardView> {
               const SizedBox(height: 12),
               Text(
                 body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: DoctorStyles.textPrimary,
                     height: 1.4,
@@ -447,7 +446,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
       decoration: DoctorStyles.cardDecoration(borderRadius: 16),
       child: Column(
         children: <Widget>[
@@ -512,13 +511,13 @@ class _RatingCardState extends State<_RatingCard> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const SizedBox(
+      return SizedBox(
         height: 60,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: DoctorStyles.navy)),
       );
     }
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: DoctorStyles.cardDecoration(borderRadius: 16),
       child: Row(
         children: <Widget>[
@@ -530,7 +529,7 @@ class _RatingCardState extends State<_RatingCard> {
             children: <Widget>[
               Text(
                 _count > 0 ? '$_average' : 'No ratings yet',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: DoctorStyles.textPrimary,
@@ -538,7 +537,7 @@ class _RatingCardState extends State<_RatingCard> {
               ),
               Text(
                 _count > 0 ? '$_count review${_count == 1 ? '' : 's'}' : 'Be the first to be rated',
-                style: const TextStyle(fontSize: 12, color: DoctorStyles.slate),
+                style: TextStyle(fontSize: 12, color: DoctorStyles.slate),
               ),
             ],
           ),
@@ -549,7 +548,7 @@ class _RatingCardState extends State<_RatingCard> {
               children: List.generate(5, (i) {
                 return Icon(
                   i < _average.round() ? Icons.star_rounded : Icons.star_border_rounded,
-                  color: const Color(0xFFFEA500),
+                  color: DoctorStyles.ratingStar,
                   size: 16,
                 );
               }),

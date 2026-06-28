@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/supabase/supabase_service.dart';
 import '../../../core/supabase/doctor_reviews_service.dart';
-import '../../admin/admin_theme.dart';
+import '../../patient/controllers/patient_controller.dart';
+import '../../patient/patient_theme.dart';
 
 class PublicProfileView extends StatefulWidget {
   const PublicProfileView({super.key});
@@ -106,7 +107,6 @@ class _PublicProfileViewState extends State<PublicProfileView> {
         myReview = mine;
       });
     } catch (_) {
-      // silently fail reviews
     } finally {
       setState(() => isLoadingReviews = false);
     }
@@ -119,16 +119,24 @@ class _PublicProfileViewState extends State<PublicProfileView> {
 
     return Scaffold(
       body: Container(
-        decoration: AdminStyles.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [const Color(0xFF4ECDC4), PatientStyles.surface],
+            stops: const [0.0, 0.3],
+          ),
+        ),
         child: SafeArea(
           child: Column(
-            children: <Widget>[
-              Container(
+            children: [
+              // App Bar
+              Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 20, 0),
                 child: Row(
-                  children: <Widget>[
+                  children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
                       onPressed: () => Get.back(),
                     ),
                     const Spacer(),
@@ -137,7 +145,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AdminStyles.textPrimary,
+                        color: Colors.white,
                       ),
                     ),
                     const Spacer(),
@@ -147,24 +155,33 @@ class _PublicProfileViewState extends State<PublicProfileView> {
               ),
               Expanded(
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator(color: AdminStyles.navy))
+                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF4ECDC4)))
                     : error.isNotEmpty
                         ? _buildError()
                         : SingleChildScrollView(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                             child: Column(
-                              children: <Widget>[
+                              children: [
                                 _buildHeaderCard(),
-                                const SizedBox(height: 16),
-                                if (isDoctor) ..._buildRatingSection(),
-                                if ((profile?['phone_number'] ?? '').toString().isNotEmpty)
-                                  _buildInfoRow('Phone', profile!['phone_number'] ?? ''),
-                                if ((profile?['blood_type'] ?? '').toString().isNotEmpty)
-                                  _buildInfoRow('Blood Type', profile!['blood_type'] ?? ''),
-                                if ((profile?['medical_record'] ?? '').toString().isNotEmpty)
-                                  _buildInfoRow('Medical Record', profile!['medical_record'] ?? ''),
+                                const SizedBox(height: 20),
+                                if (isDoctor) _buildBookButton(),
+                                if (isDoctor) const SizedBox(height: 20),
                                 if ((profile?['bio'] ?? '').toString().isNotEmpty)
-                                  _buildInfoRow('Bio', profile!['bio'] ?? ''),
+                                  _buildSectionCard(
+                                    'About',
+                                    Text(
+                                      profile!['bio'].toString(),
+                                      style: TextStyle(fontSize: 14, color: PatientStyles.textPrimary, height: 1.5),
+                                    ),
+                                  ),
+                                if ((profile?['phone_number'] ?? '').toString().isNotEmpty ||
+                                    (profile?['blood_type'] ?? '').toString().isNotEmpty ||
+                                    (profile?['medical_record'] ?? '').toString().isNotEmpty)
+                                  _buildInfoSection(),
+                                if (isDoctor) ...[
+                                  const SizedBox(height: 20),
+                                  _buildRatingCard(),
+                                ],
                                 const SizedBox(height: 40),
                               ],
                             ),
@@ -182,51 +199,119 @@ class _PublicProfileViewState extends State<PublicProfileView> {
       child: Container(
         margin: const EdgeInsets.all(20),
         padding: const EdgeInsets.all(20),
-        decoration: AdminStyles.cardDecoration(),
+        decoration: BoxDecoration(
+          color: PatientStyles.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: PatientStyles.danger.withValues(alpha: 0.3)),
+        ),
         child: Text(
           error,
-          style: const TextStyle(color: AdminStyles.danger),
+          style: TextStyle(color: PatientStyles.danger),
           textAlign: TextAlign.center,
         ),
       ),
     );
   }
 
+  Widget _buildSectionCard(String title, Widget content) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: PatientStyles.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: PatientStyles.border.withValues(alpha: 0.5), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: PatientStyles.textPrimary),
+          ),
+          const SizedBox(height: 12),
+          content,
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeaderCard() {
     if (profile == null) return const SizedBox.shrink();
+    final name = profile?['full_name']?.toString() ?? 'Unknown';
+    final specialty = profile?['specialty']?.toString();
+    final role = profile?['role']?.toString() ?? '';
+
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AdminStyles.cardDecoration(),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: PatientStyles.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: PatientStyles.border.withValues(alpha: 0.5), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
       child: Column(
-        children: <Widget>[
+        children: [
           CircleAvatar(
-            radius: 44,
-            backgroundColor: AdminStyles.navy.withValues(alpha: 0.1),
+            radius: 50,
+            backgroundColor: const Color(0xFF4ECDC4).withValues(alpha: 0.15),
             backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
             child: avatarUrl.isEmpty
                 ? Text(
-                    (profile?['full_name']?.toString().isNotEmpty ?? false)
-                        ? profile!['full_name'][0].toUpperCase()
-                        : 'U',
-                    style: const TextStyle(fontSize: 28, color: AdminStyles.navy, fontWeight: FontWeight.w700),
+                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                    style: const TextStyle(fontSize: 32, color: Color(0xFF4ECDC4), fontWeight: FontWeight.w700),
                   )
                 : null,
           ),
           const SizedBox(height: 16),
           Text(
-            profile?['full_name']?.toString() ?? 'Unknown',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AdminStyles.textPrimary),
+            name,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: PatientStyles.textPrimary),
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Role: ${profile?['role'] ?? '-'}',
-            style: const TextStyle(color: AdminStyles.slate),
-          ),
-          if ((profile?['specialty'] ?? '').toString().isNotEmpty) ...[
+          if (specialty != null && specialty.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                specialty,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF4ECDC4), fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+          if (role.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              'Specialty: ${profile!['specialty']}',
-              style: const TextStyle(color: AdminStyles.textSecondary),
+              role[0].toUpperCase() + role.substring(1),
+              style: TextStyle(fontSize: 13, color: PatientStyles.textSecondary),
+            ),
+          ],
+          if (averageRating > 0) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ...List.generate(5, (i) {
+                  return Icon(
+                    i < averageRating.round() ? Icons.star : Icons.star_border,
+                    color: const Color(0xFFFEA500),
+                    size: 20,
+                  );
+                }),
+                const SizedBox(width: 8),
+                Text(
+                  '$averageRating ($reviewCount)',
+                      style: TextStyle(fontSize: 13, color: PatientStyles.textSecondary),
+                ),
+              ],
             ),
           ],
         ],
@@ -234,127 +319,223 @@ class _PublicProfileViewState extends State<PublicProfileView> {
     );
   }
 
-  List<Widget> _buildRatingSection() {
+  Widget _buildBookButton() {
     final doctorId = profile?['id']?.toString() ?? '';
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: () => _pickDateTime(doctorId),
+        icon: const Icon(Icons.calendar_today, color: Colors.white),
+        label: const Text('Book Appointment', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF4ECDC4),
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+    );
+  }
 
-    return [
-      Container(
-        padding: const EdgeInsets.all(18),
-        decoration: AdminStyles.cardDecoration(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+  Future<void> _pickDateTime(String doctorId) async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 90)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (time == null || !mounted) return;
+    final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    final ctrl = Get.find<PatientController>();
+    ctrl.selectedDoctorId.value = doctorId;
+    ctrl.selectedDateTime.value = dt;
+    await ctrl.bookAppointment();
+  }
+
+  Widget _buildInfoSection() {
+    final phone = profile?['phone_number']?.toString() ?? '';
+    final bloodType = profile?['blood_type']?.toString() ?? '';
+    final medicalRecord = profile?['medical_record']?.toString() ?? '';
+
+    return _buildSectionCard(
+      'Information',
+      Column(
+        children: [
+          if (phone.isNotEmpty)
+            _infoRow(Icons.phone, 'Phone', phone),
+          if (phone.isNotEmpty && (bloodType.isNotEmpty || medicalRecord.isNotEmpty))
+            const Divider(height: 24),
+          if (bloodType.isNotEmpty)
+            _infoRow(Icons.bloodtype, 'Blood Type', bloodType),
+          if (bloodType.isNotEmpty && medicalRecord.isNotEmpty)
+            const Divider(height: 24),
+          if (medicalRecord.isNotEmpty)
+            _infoRow(Icons.description, 'Medical Record', medicalRecord),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: const Color(0xFF4ECDC4)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 12, color: PatientStyles.textSecondary)),
+              const SizedBox(height: 2),
+              Text(value, style: TextStyle(fontSize: 14, color: PatientStyles.textPrimary)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRatingCard() {
+    final doctorId = profile?['id']?.toString() ?? '';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: PatientStyles.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: PatientStyles.border.withValues(alpha: 0.5), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ratings & Reviews',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: PatientStyles.textPrimary),
+          ),
+          const SizedBox(height: 16),
+          if (isLoadingReviews)
+            const Center(child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(color: Color(0xFF4ECDC4)),
+            ))
+          else ...[
             Row(
-              children: <Widget>[
-                const Icon(Icons.star_rounded, color: Color(0xFFFEA500), size: 22),
-                const SizedBox(width: 8),
-                Text('Rating', style: AdminStyles.sectionHeader),
-                const Spacer(),
-                if (isLoadingReviews)
-                  const SizedBox(
-                    width: 16, height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AdminStyles.navy),
-                  )
-                else ...[
-                  Text(
-                    averageRating > 0 ? '$averageRating' : '-',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AdminStyles.textPrimary),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '($reviewCount)',
-                    style: const TextStyle(color: AdminStyles.slate, fontSize: 13),
-                  ),
-                ],
+              children: [
+                Text(
+                  averageRating > 0 ? '$averageRating' : '-',
+                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: PatientStyles.textPrimary),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: List.generate(5, (i) {
+                        return Icon(
+                          i < averageRating.round() ? Icons.star : Icons.star_border,
+                          color: const Color(0xFFFEA500),
+                          size: 16,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$reviewCount review${reviewCount == 1 ? '' : 's'}',
+                  style: TextStyle(fontSize: 13, color: PatientStyles.textSecondary),
+                    ),
+                  ],
+                ),
               ],
             ),
-            if (!isLoadingReviews && reviewCount > 0) ...[
-              const SizedBox(height: 10),
-              _starRow(averageRating),
-            ],
-            if (!isLoadingReviews && currentUserId.isNotEmpty && currentUserId != doctorId) ...[
-              const SizedBox(height: 14),
+            if (currentUserId.isNotEmpty && currentUserId != doctorId) ...[
+              const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: OutlinedButton.icon(
                   onPressed: () => _showRatingDialog(doctorId),
                   icon: Icon(hasReviewed ? Icons.edit_rounded : Icons.star_border_rounded, size: 18),
                   label: Text(hasReviewed ? 'Edit Your Rating' : 'Rate This Doctor'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AdminStyles.navy,
-                    foregroundColor: Colors.white,
-                    elevation: 2,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4ECDC4),
+                    side: const BorderSide(color: Color(0xFF4ECDC4)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-      if (!isLoadingReviews && reviews.isNotEmpty) ...[
-        const SizedBox(height: 16),
-        Text('Patient Reviews', style: AdminStyles.sectionHeader),
-        const SizedBox(height: 10),
-        ...reviews.take(10).map((review) => Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: AdminStyles.cardDecoration(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      review.patientName ?? 'Anonymous',
-                      style: const TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary),
+            if (reviews.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              ...reviews.take(5).map((review) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                      child: Text(
+                        (review.patientName?.isNotEmpty ?? false)
+                            ? review.patientName![0].toUpperCase()
+                            : 'A',
+                        style: const TextStyle(fontSize: 14, color: Color(0xFF4ECDC4), fontWeight: FontWeight.w600),
+                      ),
                     ),
-                  ),
-                  _starRowSmall(review.rating),
-                ],
-              ),
-              if (review.reviewText != null && review.reviewText!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(review.reviewText!, style: const TextStyle(color: AdminStyles.textSecondary, fontSize: 13)),
-              ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                review.patientName ?? 'Anonymous',
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: PatientStyles.textPrimary),
+                              ),
+                              const Spacer(),
+                              Row(
+                                children: List.generate(5, (i) {
+                                  return Icon(
+                                    i < review.rating ? Icons.star : Icons.star_border,
+                                    color: const Color(0xFFFEA500),
+                                    size: 12,
+                                  );
+                                }),
+                              ),
+                            ],
+                          ),
+                          if (review.reviewText != null && review.reviewText!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              review.reviewText!,
+                              style: TextStyle(fontSize: 13, color: PatientStyles.textSecondary, height: 1.3),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )),
             ],
-          ),
-        )),
-      ],
-      if (!isLoadingReviews && reviews.isEmpty) ...[
-        const SizedBox(height: 12),
-        const Center(
-          child: Text('No reviews yet.', style: TextStyle(color: AdminStyles.slate, fontSize: 13)),
-        ),
-      ],
-    ];
-  }
-
-  Widget _starRow(double rating) {
-    return Row(
-      children: List.generate(5, (i) {
-        final filled = i < rating.round();
-        return Icon(
-          filled ? Icons.star_rounded : Icons.star_border_rounded,
-          color: const Color(0xFFFEA500),
-          size: 20,
-        );
-      }),
-    );
-  }
-
-  Widget _starRowSmall(int rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        return Icon(
-          i < rating ? Icons.star_rounded : Icons.star_border_rounded,
-          color: const Color(0xFFFEA500),
-          size: 16,
-        );
-      }),
+            if (reviews.isEmpty) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: Text('No reviews yet.', style: TextStyle(fontSize: 13, color: PatientStyles.textSecondary)),
+              ),
+            ],
+          ],
+        ],
+      ),
     );
   }
 
@@ -367,9 +548,9 @@ class _PublicProfileViewState extends State<PublicProfileView> {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: PatientStyles.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
@@ -377,12 +558,12 @@ class _PublicProfileViewState extends State<PublicProfileView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
+                children: [
                   Center(
                     child: Container(
                       width: 40, height: 4,
                       decoration: BoxDecoration(
-                        color: AdminStyles.border,
+                        color: PatientStyles.border,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -390,7 +571,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                   const SizedBox(height: 20),
                   Text(
                     myReview != null ? 'Edit Your Rating' : 'Rate This Doctor',
-                    style: AdminStyles.sectionHeader,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: PatientStyles.textPrimary),
                   ),
                   const SizedBox(height: 20),
                   Center(
@@ -400,9 +581,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                         final starNum = i + 1;
                         return IconButton(
                           icon: Icon(
-                            starNum <= selectedRating
-                                ? Icons.star_rounded
-                                : Icons.star_border_rounded,
+                            starNum <= selectedRating ? Icons.star_rounded : Icons.star_border_rounded,
                             color: const Color(0xFFFEA500),
                             size: 40,
                           ),
@@ -415,9 +594,11 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                   TextField(
                     controller: reviewCtrl,
                     maxLines: 3,
-                    decoration: AdminStyles.inputDecoration(
-                      label: 'Review (optional)',
-                      hint: 'Share your experience...',
+                    decoration: InputDecoration(
+                      labelText: 'Review (optional)',
+                      hintText: 'Share your experience...',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -433,8 +614,13 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                         Get.back();
                         await _loadReviews(doctorId);
                       },
-                      style: AdminStyles.primaryButton,
-                      child: const Text('Submit Rating'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4ECDC4),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      child: const Text('Submit Rating', style: TextStyle(fontSize: 16)),
                     ),
                   ),
                 ],
@@ -442,23 +628,6 @@ class _PublicProfileViewState extends State<PublicProfileView> {
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.textPrimary),
-          ),
-          const SizedBox(height: 6),
-          Text(value, style: const TextStyle(color: AdminStyles.textSecondary)),
-        ],
       ),
     );
   }

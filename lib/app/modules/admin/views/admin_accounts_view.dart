@@ -31,15 +31,15 @@ class AdminAccountsView extends StatelessWidget {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 20, 12),
+      padding: EdgeInsets.fromLTRB(8, 8, 20, 12),
       child: Row(
         children: <Widget>[
           IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+            icon: Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
             onPressed: () => Get.back(),
           ),
           const Spacer(),
-          const Text(
+          Text(
             'Account Management',
             style: TextStyle(
               fontSize: 18,
@@ -49,7 +49,7 @@ class AdminAccountsView extends StatelessWidget {
           ),
           const Spacer(),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: AdminStyles.textPrimary),
+            icon: Icon(Icons.more_vert_rounded, color: AdminStyles.textPrimary),
             onSelected: (String value) {
               switch (value) {
                 case 'patients':
@@ -76,7 +76,7 @@ class AdminAccountsView extends StatelessWidget {
 
   Widget _buildBody(AdminController controller, BuildContext context) {
     if (controller.isLoadingAccounts.value) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AdminStyles.navy),
       );
     }
@@ -84,15 +84,15 @@ class AdminAccountsView extends StatelessWidget {
     if (controller.accountsError.value.isNotEmpty) {
       return Center(
         child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AdminStyles.danger.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             controller.accountsError.value,
-            style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+            style: TextStyle(color: AdminStyles.danger, fontSize: 13),
           ),
         ),
       );
@@ -106,7 +106,7 @@ class AdminAccountsView extends StatelessWidget {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const <Widget>[
+          children: [
             Icon(Icons.people_outline_rounded, size: 56, color: AdminStyles.slateLight),
             SizedBox(height: 12),
             Text('No accounts available', style: TextStyle(
@@ -120,7 +120,7 @@ class AdminAccountsView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => controller.loadAccounts(),
       child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         children: <Widget>[
           if (patients.isNotEmpty)
             _buildRoleSection('Patients', patients, AdminStyles.blue, controller, context),
@@ -140,12 +140,12 @@ class AdminAccountsView extends StatelessWidget {
 
   Widget _buildRoleSection(String title, List<dynamic> accounts, Color color, AdminController controller, BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+            padding: EdgeInsets.fromLTRB(4, 12, 4, 8),
             child: Row(
               children: <Widget>[
                 Container(
@@ -153,7 +153,7 @@ class AdminAccountsView extends StatelessWidget {
                   decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 8),
-                Text(title, style: const TextStyle(
+                Text(title, style: TextStyle(
                   fontSize: 15, fontWeight: FontWeight.w700, color: AdminStyles.textPrimary,
                 )),
                 const Spacer(),
@@ -165,8 +165,8 @@ class AdminAccountsView extends StatelessWidget {
           ),
           ...accounts.map((account) {
             return Container(
-              margin: const EdgeInsets.only(bottom: 6),
-              padding: const EdgeInsets.all(14),
+              margin: EdgeInsets.only(bottom: 6),
+              padding: EdgeInsets.all(14),
               decoration: AdminStyles.cardDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,7 +196,7 @@ class AdminAccountsView extends StatelessWidget {
                       Expanded(
                         child: Text(
                           account.fullName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: AdminStyles.textPrimary,
                           ),
@@ -208,7 +208,7 @@ class AdminAccountsView extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     account.id,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11, color: AdminStyles.slate,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -221,17 +221,17 @@ class AdminAccountsView extends StatelessWidget {
                         child: DropdownButtonFormField<String>(
                           initialValue: account.role,
                           decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: AdminStyles.border),
+                              borderSide: BorderSide(color: AdminStyles.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: AdminStyles.border),
+                              borderSide: BorderSide(color: AdminStyles.border),
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AdminStyles.surface,
                             isDense: true,
                           ),
                           items: const <DropdownMenuItem<String>>[
@@ -276,7 +276,7 @@ class AdminAccountsView extends StatelessWidget {
 
   Widget _statusChip(bool approved) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: approved
             ? AdminStyles.success.withValues(alpha: 0.12)
@@ -302,7 +302,7 @@ class AdminAccountsView extends StatelessWidget {
           foregroundColor: color,
           side: BorderSide(color: color.withValues(alpha: 0.4)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 6),
+          padding: EdgeInsets.symmetric(horizontal: 6),
           textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
           visualDensity: VisualDensity.compact,
         ),
@@ -322,7 +322,7 @@ class AdminAccountsView extends StatelessWidget {
     final bool? save = await Get.dialog<bool>(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Edit Name', style: TextStyle(
+        title: Text('Edit Name', style: TextStyle(
           fontWeight: FontWeight.w700, color: AdminStyles.textPrimary,
         )),
         content: TextField(
@@ -332,7 +332,7 @@ class AdminAccountsView extends StatelessWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
+            child: Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
           ),
           ElevatedButton(
             onPressed: () => Get.back(result: true),

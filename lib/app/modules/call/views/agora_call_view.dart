@@ -5,7 +5,6 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../../core/agora/agora_service.dart';
 import '../../../core/agora/agora_token_service.dart';
-import '../../../theme/github_theme.dart';
 
 class AgoraCallView extends StatefulWidget {
   const AgoraCallView({super.key});
@@ -209,20 +208,14 @@ class _AgoraCallViewState extends State<AgoraCallView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GithubTheme.bg,
-      appBar: AppBar(
-        title: Text('Video Call: $_channelName'),
-        backgroundColor: GithubTheme.surface,
-        foregroundColor: GithubTheme.textPrimary,
-        elevation: 0,
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: _buildBody(),
       ),
-      body: SafeArea(child: _buildBody()),
     );
   }
 
   Widget _buildBody() {
-    final bool compact = MediaQuery.of(context).size.width < 420;
-
     if (_appId.isEmpty) {
       return _buildInfo(
         title: 'Missing Agora App ID',
@@ -241,59 +234,63 @@ class _AgoraCallViewState extends State<AgoraCallView> {
     }
 
     if (!_isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Colors.white,
+        ),
+      );
     }
 
     return Stack(
       children: <Widget>[
+        // الخلفية: الفيديو الرئيسي (الطرف البعيد)
         Positioned.fill(child: _buildRemoteView()),
+
+        // الفيديو الصغير في الأسفل يمين (الكاميرا المحلية)
         Positioned(
-          right: 12,
-          top: 12,
-          child: SizedBox(
-            width: compact ? 96 : 120,
-            height: compact ? 136 : 170,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: ColoredBox(
-                color: const Color(0xFF0D1117),
-                child: _buildLocalView(),
+          right: 16,
+          bottom: 140,
+          child: Container(
+            width: 100,
+            height: 140,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFF1A1A1A),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
+            clipBehavior: Clip.hardEdge,
+            child: _buildLocalView(),
           ),
         ),
+
+        // أزرار التحكم في الأسفل
         Positioned(
           left: 0,
           right: 0,
-          bottom: 20,
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 10,
-            runSpacing: 8,
+          bottom: 40,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              FilledButton.tonalIcon(
-                onPressed: _toggleMute,
-                icon: Icon(
-                  _muted ? Icons.mic_off_outlined : Icons.mic_none_outlined,
-                ),
-                label: Text(_muted ? 'Unmute' : 'Mute'),
-              ),
-              FilledButton.tonalIcon(
+              // زر الكاميرا
+              _buildControlButton(
+                icon: _cameraOff
+                    ? Icons.videocam_off_outlined
+                    : Icons.videocam_outlined,
                 onPressed: _toggleCamera,
-                icon: Icon(
-                  _cameraOff
-                      ? Icons.videocam_off_outlined
-                      : Icons.videocam_outlined,
-                ),
-                label: Text(_cameraOff ? 'Camera On' : 'Camera Off'),
+                isActive: !_cameraOff,
               ),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFCF222E),
-                ),
-                onPressed: _endCall,
-                icon: const Icon(Icons.call_end_outlined),
-                label: const Text('End'),
+              const SizedBox(width: 24),
+              // زر إنهاء المكالمة (أحمر كبير)
+              _buildEndCallButton(),
+              const SizedBox(width: 24),
+              // زر المايك
+              _buildControlButton(
+                icon: _muted ? Icons.mic_off_outlined : Icons.mic_none_outlined,
+                onPressed: _toggleMute,
+                isActive: !_muted,
               ),
             ],
           ),
@@ -302,16 +299,79 @@ class _AgoraCallViewState extends State<AgoraCallView> {
     );
   }
 
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required bool isActive,
+  }) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withValues(alpha: 0.9),
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          color: isActive ? Colors.black87 : Colors.red,
+          size: 26,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndCallButton() {
+    return Container(
+      width: 72,
+      height: 72,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFFEF4444),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x66EF4444),
+            blurRadius: 12,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: IconButton(
+        onPressed: _endCall,
+        icon: const Icon(
+          Icons.call_end,
+          color: Colors.white,
+          size: 32,
+        ),
+      ),
+    );
+  }
+
   Widget _buildRemoteView() {
     final RtcEngine? engine = _engine;
     final int? remoteUid = _remoteUid;
     if (engine == null || remoteUid == null) {
-      return const ColoredBox(
-        color: Color(0xFF0D1117),
-        child: Center(
-          child: Text(
-            'Waiting for remote participant...',
-            style: TextStyle(color: Colors.white70),
+      return Container(
+        color: const Color(0xFF1A1A1A),
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.person_outline,
+                color: Colors.white54,
+                size: 64,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Waiting for remote participant...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -330,7 +390,11 @@ class _AgoraCallViewState extends State<AgoraCallView> {
     final RtcEngine? engine = _engine;
     if (engine == null || _cameraOff) {
       return const Center(
-        child: Icon(Icons.person_outline, color: Colors.white70),
+        child: Icon(
+          Icons.person_outline,
+          color: Colors.white54,
+          size: 40,
+        ),
       );
     }
 
@@ -351,13 +415,20 @@ class _AgoraCallViewState extends State<AgoraCallView> {
           children: <Widget>[
             Text(
               title,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white70,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../routes/app_pages.dart';
-import '../../../theme/github_theme.dart';
 import '../../../theme/theme_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../controllers/patient_controller.dart';
@@ -23,7 +22,7 @@ class PatientSettingsView extends StatelessWidget {
       backgroundColor: PatientStyles.navy,
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: PatientStyles.surface.withValues(alpha: 0.94),
         foregroundColor: PatientStyles.textPrimary,
         elevation: 0,
       ),
@@ -31,21 +30,21 @@ class PatientSettingsView extends StatelessWidget {
         children: <Widget>[
           Container(decoration: PatientStyles.backgroundGradient),
           ListView(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             children: <Widget>[
-              const Text(
+              Text(
                 'Appearance',
                 style: PatientStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: PatientStyles.glassCard,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       'Theme',
                       style: TextStyle(
                         fontSize: 16,
@@ -88,14 +87,14 @@ class PatientSettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Notifications',
                 style: PatientStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: PatientStyles.glassCard,
                 child: Column(
                   children: <Widget>[
@@ -137,14 +136,14 @@ class PatientSettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Privacy & Account',
                 style: PatientStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: PatientStyles.glassCard,
                 child: Column(
                   children: <Widget>[
@@ -178,21 +177,11 @@ class PatientSettingsView extends StatelessWidget {
                     ),
                     const Divider(),
                     ListTile(
-                      leading: const Icon(Icons.security),
-                      title: const Text('Two-Factor Authentication'),
-                      subtitle: const Text(
-                        'Add an extra layer of account protection.',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Get.toNamed(AppRoutes.twoFactor),
-                    ),
-                    const Divider(),
-                    ListTile(
-                      leading: const Icon(Icons.logout, color: GithubTheme.danger),
-                      title: const Text('Logout', style: TextStyle(color: GithubTheme.danger)),
-                      subtitle: const Text(
+                      leading: Icon(Icons.logout, color: PatientStyles.danger),
+                      title: Text('Logout', style: TextStyle(color: PatientStyles.danger)),
+                      subtitle: Text(
                         'Sign out of your account.',
-                        style: TextStyle(color: GithubTheme.danger),
+                        style: TextStyle(color: PatientStyles.danger),
                       ),
                       onTap: () {
                         Get.dialog(
@@ -220,14 +209,14 @@ class PatientSettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Support',
                 style: PatientStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: PatientStyles.glassCard,
                 child: Column(
                   children: <Widget>[
@@ -299,7 +288,7 @@ class PatientSettingsView extends StatelessWidget {
               obscureText: true,
               decoration: PatientStyles.inputDecoration(
                 label: 'Current Password',
-                prefixIcon: const Icon(Icons.lock_outline, color: PatientStyles.slateLight),
+                prefixIcon: Icon(Icons.lock_outline, color: PatientStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -308,7 +297,7 @@ class PatientSettingsView extends StatelessWidget {
               obscureText: true,
               decoration: PatientStyles.inputDecoration(
                 label: 'New Password',
-                prefixIcon: const Icon(Icons.lock_outline, color: PatientStyles.slateLight),
+                prefixIcon: Icon(Icons.lock_outline, color: PatientStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -317,7 +306,7 @@ class PatientSettingsView extends StatelessWidget {
               obscureText: true,
               decoration: PatientStyles.inputDecoration(
                 label: 'Confirm New Password',
-                prefixIcon: const Icon(Icons.lock_outline, color: PatientStyles.slateLight),
+                prefixIcon: Icon(Icons.lock_outline, color: PatientStyles.slateLight),
               ),
             ),
           ],
@@ -358,7 +347,7 @@ class PatientSettingsView extends StatelessWidget {
               controller: patientController.complaintTitleController,
               decoration: PatientStyles.inputDecoration(
                 label: 'Complaint title',
-                prefixIcon: const Icon(Icons.report_problem_outlined, color: PatientStyles.slateLight),
+                prefixIcon: Icon(Icons.report_problem_outlined, color: PatientStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -367,7 +356,7 @@ class PatientSettingsView extends StatelessWidget {
               maxLines: 4,
               decoration: PatientStyles.inputDecoration(
                 label: 'Complaint details',
-                prefixIcon: const Padding(
+                prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: 60),
                   child: Icon(Icons.description_outlined, color: PatientStyles.slateLight),
                 ),

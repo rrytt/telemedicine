@@ -107,7 +107,7 @@ class AuthController extends GetxController {
 
     final User? user = SupabaseService.client.auth.currentUser;
     if (user == null) {
-      Get.offAllNamed(AppRoutes.login);
+      Get.offAllNamed(AppRoutes.onboarding);
       return;
     }
 
@@ -301,7 +301,8 @@ class AuthController extends GetxController {
           .from('profiles')
           .select('role, is_approved')
           .eq('id', user.id)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
 
       if (profile is Map<String, dynamic>) {
         final dynamic roleValue = profile['role'];
@@ -419,14 +420,6 @@ class AuthController extends GetxController {
 
   void handleResetPassword() {
     sendPasswordResetLink();
-  }
-
-  void handleFingerprintLogin() {
-    Get.snackbar(
-      'Feature Coming Soon',
-      'Biometric login (fingerprint & face recognition) will be available soon.',
-      duration: const Duration(seconds: 3),
-    );
   }
 
   @override

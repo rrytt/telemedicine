@@ -77,7 +77,16 @@ class PatientController extends GetxController {
   final Rxn<DateTime> selectedDateTime = Rxn<DateTime>();
   final RxBool isBooking = false.obs;
 
-  final TextEditingController messageController = TextEditingController();
+  TextEditingController _messageController = TextEditingController();
+  bool _messageControllerDisposed = false;
+  TextEditingController get messageController {
+    if (_messageControllerDisposed) {
+      _messageController = TextEditingController();
+      _messageControllerDisposed = false;
+    }
+    return _messageController;
+  }
+
   final TextEditingController complaintTitleController =
       TextEditingController();
   final TextEditingController complaintBodyController = TextEditingController();
@@ -182,7 +191,8 @@ class PatientController extends GetxController {
       SupabaseService.client.removeChannel(_messagesChannel!);
       _messagesChannel = null;
     }
-    messageController.dispose();
+    _messageController.dispose();
+    _messageControllerDisposed = true;
     complaintTitleController.dispose();
     complaintBodyController.dispose();
     searchController.dispose();

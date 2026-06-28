@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../auth/controllers/auth_controller.dart';
@@ -41,14 +41,24 @@ class AdminDashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Container(
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 20),
-                child: const Text(
-                  'Admin Menu',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AdminStyles.textPrimary,
-                  ),
+                padding: EdgeInsets.fromLTRB(24, 32, 24, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset('assets/images/icon.jpg', width: 48, height: 48, fit: BoxFit.cover),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Admin Menu',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AdminStyles.textPrimary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               _drawerItem(Icons.dashboard_rounded, 'Dashboard', () {}),
@@ -59,7 +69,7 @@ class AdminDashboardView extends StatelessWidget {
               _drawerItem(Icons.star_rounded, 'Reviews', () => Get.toNamed(AppRoutes.adminReviews)),
               _drawerItem(Icons.report_rounded, 'Complaints', () => Get.toNamed(AppRoutes.adminComplaints)),
               const Spacer(),
-              const Divider(height: 1, color: AdminStyles.border),
+              Divider(height: 1, color: AdminStyles.border),
               _drawerItem(Icons.logout_rounded, 'Logout', () => authController.logout()),
               const SizedBox(height: 20),
             ],
@@ -72,28 +82,28 @@ class AdminDashboardView extends StatelessWidget {
   Widget _drawerItem(IconData icon, String label, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: AdminStyles.navy),
-      title: Text(label, style: const TextStyle(
+      title: Text(label, style: TextStyle(
         fontWeight: FontWeight.w600, color: AdminStyles.textPrimary,
       )),
       onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );
   }
 
   Widget _buildHeader(BuildContext context, AuthController authController) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
       child: Row(
         children: <Widget>[
           Builder(
             builder: (BuildContext ctx) => IconButton(
-              icon: const Icon(Icons.menu_rounded, color: AdminStyles.textPrimary),
+              icon: Icon(Icons.menu_rounded, color: AdminStyles.textPrimary),
               onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
           ),
           const Spacer(),
-          const Text(
+          Text(
             'Admin Portal',
             style: TextStyle(
               fontSize: 20,
@@ -103,7 +113,7 @@ class AdminDashboardView extends StatelessWidget {
           ),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AdminStyles.textPrimary),
+            icon: Icon(Icons.logout_rounded, color: AdminStyles.textPrimary),
             onPressed: () => authController.logout(),
           ),
         ],
@@ -113,7 +123,7 @@ class AdminDashboardView extends StatelessWidget {
 
   Widget _buildBody(AdminController controller) {
     if (controller.isLoadingStats.value) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AdminStyles.navy),
       );
     }
@@ -129,7 +139,7 @@ class AdminDashboardView extends StatelessWidget {
           final bool compact = constraints.maxWidth < 600;
           return SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -142,19 +152,19 @@ class AdminDashboardView extends StatelessWidget {
                 if (controller.statsError.value.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AdminStyles.danger.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: <Widget>[
-                        const Icon(Icons.info_outline, color: AdminStyles.danger, size: 18),
+                        Icon(Icons.info_outline, color: AdminStyles.danger, size: 18),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             controller.statsError.value,
-                            style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+                            style: TextStyle(color: AdminStyles.danger, fontSize: 13),
                           ),
                         ),
                       ],
@@ -245,7 +255,7 @@ class AdminDashboardView extends StatelessWidget {
 
   Widget _statCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: AdminStyles.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,7 +281,7 @@ class AdminDashboardView extends StatelessWidget {
     if (compact) {
       return Column(
         children: cards.map((c) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: EdgeInsets.only(bottom: 10),
           child: c,
         )).toList(),
       );
@@ -290,12 +300,12 @@ class AdminDashboardView extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 16),
         decoration: AdminStyles.cardDecoration(),
         child: Row(
           children: <Widget>[
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
@@ -304,7 +314,7 @@ class AdminDashboardView extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(label, style: const TextStyle(
+              child: Text(label, style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: AdminStyles.textPrimary,
@@ -319,7 +329,7 @@ class AdminDashboardView extends StatelessWidget {
 
   Widget _buildAccountOverview(AdminController controller) {
     if (controller.isLoadingAccounts.value) {
-      return const Center(child: Padding(
+      return Center(child: Padding(
         padding: EdgeInsets.all(20),
         child: CircularProgressIndicator(color: AdminStyles.navy),
       ));
@@ -327,22 +337,22 @@ class AdminDashboardView extends StatelessWidget {
     final int total = controller.accounts.length;
     final int pending = controller.accounts.where((a) => !a.isApproved).length;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       decoration: AdminStyles.cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(Icons.people_rounded, color: AdminStyles.navy, size: 20),
+              Icon(Icons.people_rounded, color: AdminStyles.navy, size: 20),
               const SizedBox(width: 8),
-              const Text('Registered Accounts', style: TextStyle(
+              Text('Registered Accounts', style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
                 color: AdminStyles.textPrimary,
               )),
               const Spacer(),
-              Text('$total total', style: const TextStyle(
+              Text('$total total', style: TextStyle(
                 color: AdminStyles.slate,
                 fontSize: 13,
               )),
@@ -363,16 +373,16 @@ class AdminDashboardView extends StatelessWidget {
 
   Widget _overviewRow(String label, String value, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: <Widget>[
           Container(width: 8, height: 8, decoration: BoxDecoration(
             color: color, shape: BoxShape.circle,
           )),
           const SizedBox(width: 10),
-          Text(label, style: const TextStyle(color: AdminStyles.textSecondary, fontSize: 14)),
+          Text(label, style: TextStyle(color: AdminStyles.textSecondary, fontSize: 14)),
           const Spacer(),
-          Text(value, style: const TextStyle(
+          Text(value, style: TextStyle(
             fontWeight: FontWeight.w700,
             color: AdminStyles.textPrimary,
             fontSize: 14,
@@ -389,28 +399,28 @@ class AdminDashboardView extends StatelessWidget {
     final int total = controller.complaints.length;
     final int open = controller.complaints.where((c) => c.status == 'open').length;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       decoration: AdminStyles.cardDecoration(),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.report_rounded, color: AdminStyles.danger, size: 20),
+          Icon(Icons.report_rounded, color: AdminStyles.danger, size: 20),
           const SizedBox(width: 8),
-          const Text('Complaints', style: TextStyle(
+          Text('Complaints', style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 15,
             color: AdminStyles.textPrimary,
           )),
           const Spacer(),
-          Text('$total total', style: const TextStyle(color: AdminStyles.slate, fontSize: 13)),
+          Text('$total total', style: TextStyle(color: AdminStyles.slate, fontSize: 13)),
           if (open > 0) ...[
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
               decoration: BoxDecoration(
                 color: AdminStyles.danger.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('$open open', style: const TextStyle(
+              child: Text('$open open', style: TextStyle(
                 color: AdminStyles.danger, fontSize: 12, fontWeight: FontWeight.w600,
               )),
             ),

@@ -3,12 +3,12 @@ import 'package:get/get.dart';
 
 import '../controllers/auth_controller.dart';
 
-const Color _navy = Color(0xFF1E3A5F);
-const Color _blue = Color(0xFF3B82F6);
+Color get _navy => Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF1A3A5C);
+const Color _teal = Color(0xFF4ECDC4);
 const Color _green = Color(0xFF10B981);
 const Color _amber = Color(0xFFFEA500);
-const Color _slate = Color(0xFF5C6F87);
-const Color _border = Color(0xFFE2E8F0);
+Color get _slate => Get.isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF5C6F87);
+Color get _border => Get.isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
 class AccountTypeView extends GetView<AuthController> {
   const AccountTypeView({super.key});
@@ -19,12 +19,14 @@ class AccountTypeView extends GetView<AuthController> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topLeft,
             radius: 1.2,
-            colors: [Color(0xFFEFF3FC), Color(0xFFD9E2EF), Color(0xFFC9D5E8)],
-            stops: [0.0, 0.6, 1.0],
+            colors: Get.isDarkMode
+                ? [const Color(0xFF0F172A), const Color(0xFF1E293B), const Color(0xFF162033)]
+                : [const Color(0xFFEFF3FC), const Color(0xFFD9E2EF), const Color(0xFFC9D5E8)],
+            stops: const [0.0, 0.6, 1.0],
           ),
         ),
         child: SafeArea(
@@ -38,22 +40,23 @@ class AccountTypeView extends GetView<AuthController> {
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.94),
+                        color: Get.isDarkMode ? const Color(0xFF1E293B).withValues(alpha: 0.94) : Colors.white.withValues(alpha: 0.94),
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: <BoxShadow>[
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
+                            color: Get.isDarkMode ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.12),
                             blurRadius: 30,
                             offset: const Offset(0, 12),
                           ),
-                          BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            blurRadius: 4,
-                            offset: const Offset(0, -1),
-                          ),
+                          if (!Get.isDarkMode)
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, -1),
+                            ),
                         ],
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: _border.withValues(alpha: 0.7),
                           width: 1.2,
                         ),
                       ),
@@ -63,7 +66,6 @@ class AccountTypeView extends GetView<AuthController> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: _navy.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                               boxShadow: <BoxShadow>[
                                 BoxShadow(
@@ -72,15 +74,14 @@ class AccountTypeView extends GetView<AuthController> {
                                   offset: const Offset(0, 8),
                                 ),
                               ],
-                            ),
-                            child: Icon(
-                              Icons.local_hospital,
-                              color: _navy.withValues(alpha: 0.7),
-                              size: 40,
+                              image: DecorationImage(
+                                image: AssetImage('assets/images/icon.jpg'),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const Text(
+                          Text(
                             'Welcome to Telemedicine',
                             style: TextStyle(
                               fontSize: 28,
@@ -90,7 +91,7 @@ class AccountTypeView extends GetView<AuthController> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'Choose your account type to get started with secure healthcare communication.',
                             style: TextStyle(
                               fontSize: 16,
@@ -146,7 +147,7 @@ class AccountTypeView extends GetView<AuthController> {
                         ),
                       ),
                     const SizedBox(height: 24),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
                         'Doctor accounts are created and managed by the admin only. Please register here as a patient or ask your administrator for access.',
@@ -169,7 +170,7 @@ class AccountTypeView extends GetView<AuthController> {
                                 title: 'Patient Account',
                                 subtitle: 'Book appointments, chat with doctors, and join secure video calls.',
                                 icon: Icons.person_outline,
-                                color: _blue,
+                                color: _teal,
                                 features: const <String>[
                                   'Schedule appointments',
                                   'Secure messaging',
@@ -217,7 +218,7 @@ class AccountTypeView extends GetView<AuthController> {
                       },
                     ),
                     const SizedBox(height: 48),
-                    const Text(
+                    Text(
                       'Secure . Private . HIPAA Compliant',
                       style: TextStyle(color: _slate, fontSize: 14, fontWeight: FontWeight.w500),
                       textAlign: TextAlign.center,
@@ -256,11 +257,11 @@ class _AccountTypeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
+        color: Get.isDarkMode ? const Color(0xFF1E293B).withValues(alpha: 0.94) : Colors.white.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(24),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Get.isDarkMode ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -296,7 +297,7 @@ class _AccountTypeCard extends StatelessWidget {
                         children: <Widget>[
                           Text(
                             title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: _navy,
@@ -323,7 +324,7 @@ class _AccountTypeCard extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   subtitle,
-                  style: const TextStyle(color: _slate, fontSize: 14, height: 1.4),
+                  style: TextStyle(color: _slate, fontSize: 14, height: 1.4),
                 ),
                 const SizedBox(height: 20),
                 ...features.map((String feature) => Padding(
@@ -334,7 +335,7 @@ class _AccountTypeCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         feature,
-                        style: const TextStyle(color: _slate, fontSize: 13),
+                        style: TextStyle(color: _slate, fontSize: 13),
                       ),
                     ],
                   ),

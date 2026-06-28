@@ -29,4 +29,10 @@ class AppRoutes {
   static const String patientSettings = '/patient-settings';
   static const String doctorAppointments = '/doctor-appointments';
   static const String doctorSearch = '/doctor-search';
+  static const String register = '/register';
+  static const String notifications = '/notifications';
+  static const String myConsultations = '/my-consultations';
+  static const String doctorDetails = '/doctor-details';
+  static const String editProfile = '/edit-profile';
+  static const String onboarding = '/onboarding';
 }

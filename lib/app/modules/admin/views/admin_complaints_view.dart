@@ -30,15 +30,15 @@ class AdminComplaintsView extends StatelessWidget {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 20, 12),
+      padding: EdgeInsets.fromLTRB(8, 8, 20, 12),
       child: Row(
         children: <Widget>[
           IconButton(
-            icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+            icon: Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
             onPressed: () => Get.back(),
           ),
           const Spacer(),
-          const Text(
+          Text(
             'Complaints',
             style: TextStyle(
               fontSize: 18,
@@ -55,7 +55,7 @@ class AdminComplaintsView extends StatelessWidget {
 
   Widget _buildList(AdminController controller) {
     if (controller.isLoadingComplaints.value) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AdminStyles.navy),
       );
     }
@@ -63,15 +63,15 @@ class AdminComplaintsView extends StatelessWidget {
     if (controller.complaintsError.value.isNotEmpty) {
       return Center(
         child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AdminStyles.danger.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             controller.complaintsError.value,
-            style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+            style: TextStyle(color: AdminStyles.danger, fontSize: 13),
           ),
         ),
       );
@@ -81,7 +81,7 @@ class AdminComplaintsView extends StatelessWidget {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const <Widget>[
+          children: [
             Icon(Icons.check_circle_outline_rounded, size: 56, color: AdminStyles.success),
             SizedBox(height: 12),
             Text('No complaints', style: TextStyle(
@@ -95,13 +95,13 @@ class AdminComplaintsView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => controller.loadComplaints(),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         itemCount: controller.complaints.length,
         itemBuilder: (BuildContext context, int index) {
           final complaint = controller.complaints[index];
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(18),
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.all(18),
             decoration: AdminStyles.cardDecoration(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +112,7 @@ class AdminComplaintsView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         complaint.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: AdminStyles.textPrimary,
@@ -126,31 +126,31 @@ class AdminComplaintsView extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: <Widget>[
-                    const Icon(Icons.person_rounded, size: 14, color: AdminStyles.slate),
+                    Icon(Icons.person_rounded, size: 14, color: AdminStyles.slate),
                     const SizedBox(width: 4),
                     Text(
                       complaint.patientName,
-                      style: const TextStyle(fontSize: 12, color: AdminStyles.textSecondary),
+                      style: TextStyle(fontSize: 12, color: AdminStyles.textSecondary),
                     ),
                     const SizedBox(width: 12),
-                    const Icon(Icons.medical_services_rounded, size: 14, color: AdminStyles.slate),
+                    Icon(Icons.medical_services_rounded, size: 14, color: AdminStyles.slate),
                     const SizedBox(width: 4),
                     Text(
                       complaint.doctorName ?? '-',
-                      style: const TextStyle(fontSize: 12, color: AdminStyles.textSecondary),
+                      style: TextStyle(fontSize: 12, color: AdminStyles.textSecondary),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
                   complaint.body,
-                  style: const TextStyle(color: AdminStyles.textPrimary, fontSize: 13),
+                  style: TextStyle(color: AdminStyles.textPrimary, fontSize: 13),
                 ),
                 if ((complaint.adminResponse ?? '').isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AdminStyles.navy.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(12),
@@ -158,7 +158,7 @@ class AdminComplaintsView extends StatelessWidget {
                     ),
                     child: Text(
                       'Admin response: ${complaint.adminResponse}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AdminStyles.textPrimary,
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
@@ -174,17 +174,17 @@ class AdminComplaintsView extends StatelessWidget {
                       child: DropdownButtonFormField<String>(
                         initialValue: complaint.status,
                         decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AdminStyles.border),
+                            borderSide: BorderSide(color: AdminStyles.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AdminStyles.border),
+                            borderSide: BorderSide(color: AdminStyles.border),
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AdminStyles.surface,
                         ),
                         items: const <DropdownMenuItem<String>>[
                           DropdownMenuItem(value: 'open', child: Text('open', style: TextStyle(fontSize: 13))),
@@ -206,7 +206,7 @@ class AdminComplaintsView extends StatelessWidget {
                       label: const Text('Respond', style: TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AdminStyles.navy,
-                        side: const BorderSide(color: AdminStyles.navy),
+                        side: BorderSide(color: AdminStyles.navy),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
@@ -245,7 +245,7 @@ class AdminComplaintsView extends StatelessWidget {
         fg = AdminStyles.slate;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
@@ -271,7 +271,7 @@ class AdminComplaintsView extends StatelessWidget {
     final bool? save = await Get.dialog<bool>(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
+        title: Text(
           'Respond to Complaint',
           style: TextStyle(fontWeight: FontWeight.w700, color: AdminStyles.textPrimary),
         ),
@@ -286,7 +286,7 @@ class AdminComplaintsView extends StatelessWidget {
         actions: <Widget>[
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
+            child: Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
           ),
           ElevatedButton(
             onPressed: () => Get.back(result: true),

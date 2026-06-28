@@ -28,17 +28,17 @@ class AdminPostsView extends StatelessWidget {
 
   Widget _buildHeader(AdminController controller) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
+      padding: EdgeInsets.fromLTRB(8, 8, 20, 0),
       child: Column(
         children: <Widget>[
           Row(
             children: <Widget>[
               IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+                icon: Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
                 onPressed: () => Get.back(),
               ),
               const Spacer(),
-              const Text(
+              Text(
                 'Manage Posts',
                 style: TextStyle(
                   fontSize: 18,
@@ -52,14 +52,14 @@ class AdminPostsView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: TextField(
               onChanged: (v) => controller.searchQuery.value = v,
               decoration: AdminStyles.inputDecoration(
                 label: 'Search posts...',
-                prefixIcon: const Icon(Icons.search_rounded, color: AdminStyles.slate),
+                prefixIcon: Icon(Icons.search_rounded, color: AdminStyles.slate),
               ).copyWith(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               ),
             ),
           ),
@@ -71,7 +71,7 @@ class AdminPostsView extends StatelessWidget {
 
   Widget _buildList(AdminController controller) {
     if (controller.isLoadingPosts.value) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AdminStyles.navy),
       );
     }
@@ -79,15 +79,15 @@ class AdminPostsView extends StatelessWidget {
     if (controller.postsError.value.isNotEmpty) {
       return Center(
         child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AdminStyles.danger.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             controller.postsError.value,
-            style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+            style: TextStyle(color: AdminStyles.danger, fontSize: 13),
           ),
         ),
       );
@@ -99,7 +99,7 @@ class AdminPostsView extends StatelessWidget {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const <Widget>[
+          children: [
             Icon(Icons.article_outlined, size: 56, color: AdminStyles.slateLight),
             SizedBox(height: 12),
             Text('No posts found', style: TextStyle(
@@ -113,13 +113,13 @@ class AdminPostsView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => controller.loadPosts(),
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16),
         itemCount: results.length,
         itemBuilder: (BuildContext context, int index) {
           final post = results[index];
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(18),
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.all(18),
             decoration: AdminStyles.cardDecoration(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +138,7 @@ class AdminPostsView extends StatelessWidget {
                               (post.doctorName?.isNotEmpty ?? false)
                                   ? post.doctorName![0].toUpperCase()
                                   : 'D',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AdminStyles.success,
                                 fontSize: 14,
@@ -153,7 +153,7 @@ class AdminPostsView extends StatelessWidget {
                         children: <Widget>[
                           Text(
                             post.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: AdminStyles.textPrimary,
@@ -164,7 +164,7 @@ class AdminPostsView extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             post.doctorName ?? 'Unknown Doctor',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AdminStyles.textSecondary,
                               fontSize: 12,
                             ),
@@ -173,7 +173,7 @@ class AdminPostsView extends StatelessWidget {
                       ),
                     ),
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert_rounded, color: AdminStyles.slate),
+                      icon: Icon(Icons.more_vert_rounded, color: AdminStyles.slate),
                       onSelected: (String value) {
                         switch (value) {
                           case 'view':
@@ -194,7 +194,7 @@ class AdminPostsView extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   post.body,
-                  style: const TextStyle(color: AdminStyles.textPrimary, fontSize: 13),
+                  style: TextStyle(color: AdminStyles.textPrimary, fontSize: 13),
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -205,12 +205,12 @@ class AdminPostsView extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(post.createdAt),
-                      style: const TextStyle(fontSize: 12, color: AdminStyles.slateLight),
+                      style: TextStyle(fontSize: 12, color: AdminStyles.slateLight),
                     ),
                     const Spacer(),
                     Text(
                       'ID: ${post.id.substring(0, 8)}...',
-                      style: const TextStyle(fontSize: 11, color: AdminStyles.slateLight),
+                      style: TextStyle(fontSize: 11, color: AdminStyles.slateLight),
                     ),
                   ],
                 ),
@@ -236,9 +236,9 @@ class AdminPostsView extends StatelessWidget {
       BuildContext context, AdminController controller, dynamic post) {
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AdminStyles.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
@@ -264,7 +264,7 @@ class AdminPostsView extends StatelessWidget {
               _detailRow('Doctor ID', post.doctorId),
               _detailRow('Created', _formatDate(post.createdAt)),
               const SizedBox(height: 16),
-              const Text('Body', style: TextStyle(
+              Text('Body', style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: AdminStyles.textPrimary,
                 fontSize: 14,
@@ -272,7 +272,7 @@ class AdminPostsView extends StatelessWidget {
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AdminStyles.surface,
                   borderRadius: BorderRadius.circular(14),
@@ -280,7 +280,7 @@ class AdminPostsView extends StatelessWidget {
                 ),
                 child: Text(
                   post.body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AdminStyles.textPrimary,
                     fontSize: 13,
                     height: 1.5,
@@ -307,18 +307,18 @@ class AdminPostsView extends StatelessWidget {
 
   Widget _detailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(
             width: 80,
-            child: Text(label, style: const TextStyle(
+            child: Text(label, style: TextStyle(
               color: AdminStyles.slate, fontWeight: FontWeight.w600, fontSize: 13,
             )),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(
+            child: Text(value, style: TextStyle(
               color: AdminStyles.textPrimary, fontWeight: FontWeight.w500, fontSize: 13,
             )),
           ),
@@ -332,24 +332,24 @@ class AdminPostsView extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Delete Post', style: TextStyle(
+        title: Text('Delete Post', style: TextStyle(
           fontWeight: FontWeight.w700, color: AdminStyles.textPrimary,
         )),
         content: Text(
           'Are you sure you want to delete "${post.title}" by ${post.doctorName ?? 'Unknown'}? This action cannot be undone.',
-          style: const TextStyle(color: AdminStyles.textSecondary),
+          style: TextStyle(color: AdminStyles.textSecondary),
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
+            child: Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.deletePost(post.id);
             },
-            child: const Text('Delete', style: TextStyle(color: AdminStyles.danger)),
+            child: Text('Delete', style: TextStyle(color: AdminStyles.danger)),
           ),
         ],
       ),

@@ -16,7 +16,7 @@ class SettingsView extends StatelessWidget {
       backgroundColor: DoctorStyles.navy,
       appBar: AppBar(
         title: const Text('Settings'),
-        backgroundColor: Colors.white.withValues(alpha: 0.94),
+        backgroundColor: DoctorStyles.surface.withValues(alpha: 0.94),
         foregroundColor: DoctorStyles.textPrimary,
         elevation: 0,
       ),
@@ -24,21 +24,21 @@ class SettingsView extends StatelessWidget {
         children: <Widget>[
           Container(decoration: DoctorStyles.backgroundGradient),
           ListView(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             children: [
-              const Text(
+              Text(
                 'Appearance',
                 style: DoctorStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: DoctorStyles.glassCard,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Theme',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: DoctorStyles.textPrimary),
                     ),
@@ -77,14 +77,14 @@ class SettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Notifications',
                 style: DoctorStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: DoctorStyles.glassCard,
                 child: Column(
                   children: [
@@ -131,14 +131,14 @@ class SettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Privacy & Security',
                 style: DoctorStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: DoctorStyles.glassCard,
                 child: Column(
                   children: [
@@ -177,14 +177,14 @@ class SettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Account',
                 style: DoctorStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: DoctorStyles.glassCard,
                 child: Column(
                   children: [
@@ -217,14 +217,14 @@ class SettingsView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'About',
                 style: DoctorStyles.sectionHeader,
               ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(4),
+                padding: EdgeInsets.all(4),
                 decoration: DoctorStyles.glassCard,
                 child: Column(
                   children: [
@@ -303,7 +303,7 @@ class SettingsView extends StatelessWidget {
               obscureText: true,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Current Password',
-                prefixIcon: const Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
+                prefixIcon: Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -312,7 +312,7 @@ class SettingsView extends StatelessWidget {
               obscureText: true,
               decoration: DoctorStyles.inputDecoration(
                 label: 'New Password',
-                prefixIcon: const Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
+                prefixIcon: Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
               ),
             ),
             const SizedBox(height: 16),
@@ -321,7 +321,7 @@ class SettingsView extends StatelessWidget {
               obscureText: true,
               decoration: DoctorStyles.inputDecoration(
                 label: 'Confirm New Password',
-                prefixIcon: const Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
+                prefixIcon: Icon(Icons.lock_outline, color: DoctorStyles.slateLight),
               ),
             ),
           ],
@@ -409,7 +409,7 @@ class SettingsView extends StatelessWidget {
                 controller: nameController,
                 decoration: DoctorStyles.inputDecoration(
                   label: 'Full Name',
-                  prefixIcon: const Icon(Icons.person_outline, color: DoctorStyles.slateLight),
+                  prefixIcon: Icon(Icons.person_outline, color: DoctorStyles.slateLight),
                 ),
               ),
               const SizedBox(height: 16),
@@ -417,7 +417,7 @@ class SettingsView extends StatelessWidget {
                 controller: specializationController,
                 decoration: DoctorStyles.inputDecoration(
                   label: 'Specialization',
-                  prefixIcon: const Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
+                  prefixIcon: Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
                 ),
               ),
               const SizedBox(height: 16),
@@ -425,7 +425,7 @@ class SettingsView extends StatelessWidget {
                 controller: licenseController,
                 decoration: DoctorStyles.inputDecoration(
                   label: 'License Number',
-                  prefixIcon: const Icon(Icons.badge_outlined, color: DoctorStyles.slateLight),
+                  prefixIcon: Icon(Icons.badge_outlined, color: DoctorStyles.slateLight),
                 ),
               ),
               const SizedBox(height: 16),
@@ -433,7 +433,7 @@ class SettingsView extends StatelessWidget {
                 controller: experienceController,
                 decoration: DoctorStyles.inputDecoration(
                   label: 'Years of Experience',
-                  prefixIcon: const Icon(Icons.timeline_outlined, color: DoctorStyles.slateLight),
+                  prefixIcon: Icon(Icons.timeline_outlined, color: DoctorStyles.slateLight),
                 ),
               ),
             ],
@@ -474,7 +474,7 @@ class SettingsView extends StatelessWidget {
           decoration: DoctorStyles.inputDecoration(
             label: 'Working Hours',
             hint: 'e.g., Mon-Fri: 9:00 AM - 5:00 PM',
-            prefixIcon: const Icon(Icons.schedule, color: DoctorStyles.slateLight),
+            prefixIcon: Icon(Icons.schedule, color: DoctorStyles.slateLight),
           ),
         ),
         actions: [
@@ -506,7 +506,7 @@ class SettingsView extends StatelessWidget {
           decoration: DoctorStyles.inputDecoration(
             label: 'Specializations',
             hint: 'e.g., Cardiology, Neurology',
-            prefixIcon: const Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
+            prefixIcon: Icon(Icons.medical_services_outlined, color: DoctorStyles.slateLight),
           ),
         ),
         actions: [
@@ -541,7 +541,7 @@ class SettingsView extends StatelessWidget {
           decoration: DoctorStyles.inputDecoration(
             label: 'Your Feedback',
             hint: 'Tell us how we can improve...',
-            prefixIcon: const Padding(
+            prefixIcon: Padding(
               padding: EdgeInsets.only(bottom: 60),
               child: Icon(Icons.feedback_outlined, color: DoctorStyles.slateLight),
             ),

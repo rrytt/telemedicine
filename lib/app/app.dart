@@ -11,6 +11,8 @@ import 'modules/admin/views/admin_posts_view.dart';
 import 'modules/admin/views/admin_reviews_view.dart';
 import 'modules/auth/views/account_type_view.dart';
 import 'modules/auth/views/login_view.dart';
+import 'modules/auth/views/onboarding_view.dart';
+import 'modules/auth/views/register_view.dart';
 import 'modules/auth/views/admin_login_view.dart';
 import 'modules/auth/views/startup_view.dart';
 import 'modules/call/views/agora_call_view.dart';
@@ -25,6 +27,10 @@ import 'modules/doctor/views/privacy_policy_view.dart';
 import 'modules/doctor/views/about_view.dart';
 import 'modules/patient/views/chat_view.dart';
 import 'modules/patient/views/doctor_search_view.dart';
+import 'modules/patient/views/doctor_details_view.dart';
+import 'modules/patient/views/edit_profile_view.dart';
+import 'modules/patient/views/my_consultations_view.dart';
+import 'modules/patient/views/notifications_view.dart';
 import 'modules/patient/views/patient_dashboard_view.dart';
 import 'modules/patient/views/patient_profile_view.dart';
 import 'modules/patient/views/patient_settings_view.dart';
@@ -35,6 +41,7 @@ import 'routes/app_pages.dart';
 import 'theme/github_theme.dart';
 import 'theme/theme_controller.dart';
 import 'modules/doctor/doctor_binding.dart';
+import 'modules/patient/patient_binding.dart';
 
 class TelemedicineApp extends StatelessWidget {
   const TelemedicineApp({super.key});
@@ -57,10 +64,18 @@ class TelemedicineApp extends StatelessWidget {
             page: () => const StartupView(),
           ),
           GetPage<dynamic>(
+            name: AppRoutes.onboarding,
+            page: () => const OnboardingView(),
+          ),
+          GetPage<dynamic>(
             name: AppRoutes.accountType,
             page: () => const AccountTypeView(),
           ),
           GetPage<dynamic>(name: AppRoutes.login, page: () => LoginView()),
+          GetPage<dynamic>(
+            name: AppRoutes.register,
+            page: () => const RegisterView(),
+          ),
           GetPage<dynamic>(
             name: AppRoutes.adminLogin,
             page: () => const AdminLoginView(),
@@ -76,6 +91,15 @@ class TelemedicineApp extends StatelessWidget {
           GetPage<dynamic>(
             name: AppRoutes.doctorSearch,
             page: () => const DoctorSearchView(),
+            binding: PatientBinding(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.doctorDetails,
+            page: () => const DoctorDetailsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.editProfile,
+            page: () => const EditProfileView(),
           ),
           GetPage<dynamic>(
             name: AppRoutes.doctorProfile,
@@ -127,6 +151,14 @@ class TelemedicineApp extends StatelessWidget {
             page: () => const AgoraCallView(),
           ),
           GetPage<dynamic>(name: AppRoutes.chat, page: () => const ChatView()),
+          GetPage<dynamic>(
+            name: AppRoutes.notifications,
+            page: () => const NotificationsView(),
+          ),
+          GetPage<dynamic>(
+            name: AppRoutes.myConsultations,
+            page: () => const MyConsultationsView(),
+          ),
           GetPage<dynamic>(
             name: AppRoutes.doctorChat,
             page: () => const DoctorChatView(),

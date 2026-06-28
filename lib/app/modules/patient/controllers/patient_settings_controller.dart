@@ -10,7 +10,6 @@ class PatientSettingsController extends GetxController {
   final RxBool messageNotifications = true.obs;
   final RxBool healthTipsNotifications = true.obs;
   final RxBool shareHealthData = true.obs;
-
   @override
   void onInit() {
     super.onInit();

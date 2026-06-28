@@ -35,17 +35,17 @@ class AdminDoctorsView extends StatelessWidget {
 
   Widget _buildHeader(AdminController controller) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
+      padding: EdgeInsets.fromLTRB(8, 8, 20, 0),
       child: Column(
         children: <Widget>[
           Row(
             children: <Widget>[
               IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
+                icon: Icon(Icons.arrow_back_rounded, color: AdminStyles.textPrimary),
                 onPressed: () => Get.back(),
               ),
               const Spacer(),
-              const Text(
+              Text(
                 'Manage Doctors',
                 style: TextStyle(
                   fontSize: 18,
@@ -59,14 +59,14 @@ class AdminDoctorsView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12),
             child: TextField(
               onChanged: (v) => controller.searchQuery.value = v,
               decoration: AdminStyles.inputDecoration(
                 label: 'Search doctors...',
-                prefixIcon: const Icon(Icons.search_rounded, color: AdminStyles.slate),
+                prefixIcon: Icon(Icons.search_rounded, color: AdminStyles.slate),
               ).copyWith(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               ),
             ),
           ),
@@ -78,7 +78,7 @@ class AdminDoctorsView extends StatelessWidget {
 
   Widget _buildList(AdminController controller) {
     if (controller.isLoadingAccounts.value) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(color: AdminStyles.navy),
       );
     }
@@ -86,8 +86,8 @@ class AdminDoctorsView extends StatelessWidget {
     if (controller.accountsError.value.isNotEmpty) {
       return Center(
         child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.all(20),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AdminStyles.danger.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
@@ -95,11 +95,11 @@ class AdminDoctorsView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Icon(Icons.error_outline_rounded, color: AdminStyles.danger, size: 40),
+              Icon(Icons.error_outline_rounded, color: AdminStyles.danger, size: 40),
               const SizedBox(height: 12),
               Text(
                 controller.accountsError.value,
-                style: const TextStyle(color: AdminStyles.danger, fontSize: 13),
+                style: TextStyle(color: AdminStyles.danger, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -114,7 +114,7 @@ class AdminDoctorsView extends StatelessWidget {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const <Widget>[
+          children: [
             Icon(Icons.person_off_rounded, size: 48, color: AdminStyles.slateLight),
             SizedBox(height: 12),
             Text('No doctors found', style: TextStyle(color: AdminStyles.slate, fontSize: 15)),
@@ -126,15 +126,15 @@ class AdminDoctorsView extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => controller.loadAccounts(),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 80),
         itemCount: results.length,
         itemBuilder: (BuildContext context, int index) {
           final account = results[index];
           return Container(
-            margin: const EdgeInsets.only(bottom: 10),
+            margin: EdgeInsets.only(bottom: 10),
             decoration: AdminStyles.cardDecoration(),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               leading: CircleAvatar(
                 backgroundColor: AdminStyles.success.withValues(alpha: 0.15),
                 backgroundImage: account.avatarUrl != null && account.avatarUrl!.isNotEmpty
@@ -145,7 +145,7 @@ class AdminDoctorsView extends StatelessWidget {
                         account.fullName.isNotEmpty
                             ? account.fullName[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           color: AdminStyles.success,
                         ),
@@ -154,11 +154,11 @@ class AdminDoctorsView extends StatelessWidget {
               ),
               title: Text(
                 account.fullName,
-                style: const TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary),
+                style: TextStyle(fontWeight: FontWeight.w600, color: AdminStyles.textPrimary),
               ),
               subtitle: Text(
                 account.email ?? account.id,
-                style: const TextStyle(color: AdminStyles.slate, fontSize: 12),
+                style: TextStyle(color: AdminStyles.slate, fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: Row(
@@ -166,7 +166,7 @@ class AdminDoctorsView extends StatelessWidget {
                 children: <Widget>[
                   _statusChip(account.isApproved),
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert_rounded, color: AdminStyles.slate),
+                    icon: Icon(Icons.more_vert_rounded, color: AdminStyles.slate),
                     onSelected: (String value) {
                       switch (value) {
                         case 'view':
@@ -198,7 +198,7 @@ class AdminDoctorsView extends StatelessWidget {
 
   Widget _statusChip(bool approved) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: approved
             ? AdminStyles.success.withValues(alpha: 0.12)
@@ -220,9 +220,9 @@ class AdminDoctorsView extends StatelessWidget {
       BuildContext context, AdminController controller, dynamic account) {
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AdminStyles.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
@@ -265,18 +265,18 @@ class AdminDoctorsView extends StatelessWidget {
 
   Widget _detailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(
             width: 80,
-            child: Text(label, style: const TextStyle(
+            child: Text(label, style: TextStyle(
               color: AdminStyles.slate, fontWeight: FontWeight.w600, fontSize: 13,
             )),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(
+            child: Text(value, style: TextStyle(
               color: AdminStyles.textPrimary, fontWeight: FontWeight.w500, fontSize: 13,
             )),
           ),
@@ -292,9 +292,9 @@ class AdminDoctorsView extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AdminStyles.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
@@ -321,7 +321,7 @@ class AdminDoctorsView extends StatelessWidget {
               const SizedBox(height: 14),
               Obx(() => Row(
                 children: <Widget>[
-                  const Text('Approved', style: TextStyle(
+                  Text('Approved', style: TextStyle(
                     color: AdminStyles.textPrimary, fontWeight: FontWeight.w500,
                   )),
                   const Spacer(),
@@ -359,24 +359,24 @@ class AdminDoctorsView extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Delete Account', style: TextStyle(
+        title: Text('Delete Account', style: TextStyle(
           fontWeight: FontWeight.w700, color: AdminStyles.textPrimary,
         )),
         content: Text(
           'Are you sure you want to delete "${account.fullName}"? This action cannot be undone.',
-          style: const TextStyle(color: AdminStyles.textSecondary),
+          style: TextStyle(color: AdminStyles.textSecondary),
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
+            child: Text('Cancel', style: TextStyle(color: AdminStyles.slate)),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.deleteAccount(account.id);
             },
-            child: const Text('Delete', style: TextStyle(color: AdminStyles.danger)),
+            child: Text('Delete', style: TextStyle(color: AdminStyles.danger)),
           ),
         ],
       ),
@@ -390,9 +390,9 @@ class AdminDoctorsView extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AdminStyles.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SingleChildScrollView(
@@ -412,7 +412,7 @@ class AdminDoctorsView extends StatelessWidget {
               const SizedBox(height: 20),
               Text('Register New Doctor', style: AdminStyles.sectionHeader),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'A verification email may be required.',
                 style: TextStyle(color: AdminStyles.slate, fontSize: 13),
               ),
