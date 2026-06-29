@@ -96,7 +96,7 @@ class _StartupViewState extends State<StartupView> with SingleTickerProviderStat
                           ),
                         ],
                         image: DecorationImage(
-                          image: AssetImage('assets/images/icon.jpg'),
+                          image: AssetImage('assets/images/icon.png'),
                           fit: BoxFit.cover,
                         ),
                       ),

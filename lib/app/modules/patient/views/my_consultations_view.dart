@@ -164,9 +164,9 @@ class _MyConsultationsViewState extends State<MyConsultationsView> {
         unselectedItemColor: PatientStyles.textSecondary,
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
+            icon: Image.asset('assets/images/icon.png', width: 24, height: 24, fit: BoxFit.contain),
             label: 'Telemedicine',
           ),
           BottomNavigationBarItem(
@@ -282,9 +282,9 @@ class _MyConsultationsViewState extends State<MyConsultationsView> {
                     color: PatientStyles.teal.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.chat_bubble_outline,
-                    color: Color(0xFF4ECDC4),
+                    color: PatientStyles.teal,
                     size: 20,
                   ),
                 )
@@ -359,7 +359,7 @@ class _MyConsultationsViewState extends State<MyConsultationsView> {
           child: ElevatedButton(
             onPressed: () => Get.toNamed(AppRoutes.doctorSearch),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2D3436),
+              backgroundColor: PatientStyles.teal,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(

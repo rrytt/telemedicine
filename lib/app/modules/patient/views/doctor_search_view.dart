@@ -237,7 +237,7 @@ class DoctorSearchView extends GetView<DoctorSearchController> {
                           Icons.star,
                           size: 14,
                           color: index < doctor.averageRating.round()
-                              ? Colors.amber
+                              ? PatientStyles.ratingStar
                               : PatientStyles.border,
                         ),
                       ),
@@ -307,7 +307,7 @@ class DoctorSearchView extends GetView<DoctorSearchController> {
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        color: const Color(0x334ECDC4),
+                        color: PatientStyles.teal.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -347,8 +347,8 @@ class _BottomNav extends StatelessWidget {
             Get.toNamed(AppRoutes.patientProfile);
         }
       },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Telemedicine'),
+      items: [
+        BottomNavigationBarItem(icon: Image.asset('assets/images/icon.png', width: 24, height: 24, fit: BoxFit.contain), label: 'Telemedicine'),
         BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
         BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'My Consults'),
         BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Notifications'),

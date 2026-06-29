@@ -53,7 +53,7 @@ class _LoginViewState extends State<LoginView> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset('assets/images/icon.jpg', width: 40, height: 40, fit: BoxFit.cover),
+                      child: Image.asset('assets/images/icon.png', width: 40, height: 40, fit: BoxFit.cover),
                     ),
                     const SizedBox(width: 8),
                     Text('Telemedicine',
@@ -64,16 +64,16 @@ class _LoginViewState extends State<LoginView> {
               ),
               const SizedBox(height: 40),
               Text('Welcome Back!',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF0A7A8A)),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF4ECDC4)),
               ),
               const SizedBox(height: 16),
               RichText(
                 text: TextSpan(
                   style: TextStyle(fontSize: 15, color: Get.isDarkMode ? const Color(0xFF94A3B8) : Colors.black54, height: 1.5),
-                  children: [
+                  children: const [
                     TextSpan(text: "To Sign in, please enter your Telemedicine credentials. Can't remember credentials? "),
                     TextSpan(text: 'Reset password',
-                      style: TextStyle(color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A), fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Color(0xFF4ECDC4), fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -91,7 +91,7 @@ class _LoginViewState extends State<LoginView> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF334155) : Colors.grey)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF334155) : Colors.grey)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF4ECDC4))),
                 ),
               ),
               const SizedBox(height: 20),
@@ -111,7 +111,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF334155) : Colors.grey)),
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF334155) : Colors.grey)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF4ECDC4))),
                 ),
               ),
               const SizedBox(height: 12),
@@ -120,7 +120,7 @@ class _LoginViewState extends State<LoginView> {
                 child: GestureDetector(
                   onTap: controller.handleResetPassword,
                   child: Text('Reset Password',
-                    style: TextStyle(color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A), fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: const Color(0xFF4ECDC4), fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),
@@ -132,8 +132,8 @@ class _LoginViewState extends State<LoginView> {
                   onPressed: controller.isLoading.value ? null : controller.submitAuth,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _canSubmit
-                        ? const Color(0xFF0A7A8A)
-                        : (Get.isDarkMode ? const Color(0xFF334155) : const Color(0xFF8DD4E0)),
+                        ? const Color(0xFF4ECDC4)
+                        : (Get.isDarkMode ? const Color(0xFF334155) : const Color(0xFF4ECDC4).withValues(alpha: 0.5)),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -149,7 +149,7 @@ class _LoginViewState extends State<LoginView> {
                 child: GestureDetector(
                   onTap: () => Get.toNamed(AppRoutes.register),
                   child: Text("Don't have an account?",
-                    style: TextStyle(color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A), fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: const Color(0xFF4ECDC4), fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                 ),
               ),

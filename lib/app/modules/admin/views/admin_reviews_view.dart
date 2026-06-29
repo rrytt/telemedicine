@@ -161,7 +161,7 @@ class AdminReviewsView extends StatelessWidget {
                   children: List.generate(5, (i) {
                     return Icon(
                       i < review.rating ? Icons.star_rounded : Icons.star_border_rounded,
-                      color: const Color(0xFFFEA500),
+                      color: AdminStyles.teal,
                       size: 18,
                     );
                   }),
@@ -208,15 +208,15 @@ class AdminReviewsView extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEA500).withValues(alpha: 0.15),
+        color: AdminStyles.teal.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         '$rating/5',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Color(0xFFFEA500),
+          color: AdminStyles.teal,
         ),
       ),
     );

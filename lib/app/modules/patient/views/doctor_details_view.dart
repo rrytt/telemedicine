@@ -204,7 +204,7 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                 : Container(
                     width: 100, height: 100,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                      color: PatientStyles.teal.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Center(
@@ -223,7 +223,7 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                color: PatientStyles.teal.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(specialty,
@@ -307,7 +307,7 @@ class _DoctorDetailsViewState extends State<DoctorDetailsView> {
                 children: [
                   CircleAvatar(
                     radius: 16,
-                    backgroundColor: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                    backgroundColor: PatientStyles.teal.withValues(alpha: 0.1),
                     child: Text(
                       (review.patientName?.isNotEmpty ?? false) ? review.patientName![0].toUpperCase() : 'A',
                       style: TextStyle(fontSize: 14, color: PatientStyles.teal, fontWeight: FontWeight.w600),

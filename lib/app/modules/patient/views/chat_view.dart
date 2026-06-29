@@ -136,13 +136,13 @@ class _ChatViewState extends State<ChatView> {
                   ),
                   IconButton(
                     onPressed: () {},
-                    icon: const Icon(Icons.camera_alt, color: Color(0xFF4ECDC4)),
+                    icon: Icon(Icons.camera_alt, color: PatientStyles.teal),
                   ),
                   Obx(() {
                     final sending = controller.isSendingMessage.value;
                     return Container(
                       decoration: BoxDecoration(
-                        color: Color(0xFF4ECDC4),
+                        color: PatientStyles.teal,
                         shape: BoxShape.circle,
                       ),
                       child: sending

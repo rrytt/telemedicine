@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-const Color _accentSlate = Color(0xFF4A627A);
+const Color _accentSlate = Color(0xFF4ECDC4);
 const Color _borderLight = Color(0xFFE2E8F0);
 const Color _darkSurface = Color(0xFF1E293B);
 const Color _darkBorder = Color(0xFF334155);
@@ -66,7 +66,7 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Row(
         children: <Widget>[
-          Image.asset('assets/images/icon.jpg', width: 20, height: 20, fit: BoxFit.cover),
+          Image.asset('assets/images/icon.png', width: 20, height: 20, fit: BoxFit.cover),
           const SizedBox(width: 8),
           Flexible(
             child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -139,7 +139,7 @@ class GithubTopBar extends StatelessWidget implements PreferredSizeWidget {
                                       GithubBadge(
                                         text: 'New',
                                         textColor: const Color(0xFF4ECDC4),
-                                        bgColor: _isDark ? const Color(0xFF1E293B) : const Color(0xFFDDF4FF),
+                                        bgColor: _isDark ? const Color(0xFF1E293B) : const Color(0xFFD0F8F4),
                                       ),
                                   ],
                                 ),
@@ -391,7 +391,7 @@ class GithubDrawer extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset('assets/images/icon.jpg', width: 48, height: 48, fit: BoxFit.cover),
+                  child: Image.asset('assets/images/icon.png', width: 48, height: 48, fit: BoxFit.cover),
                 ),
                 const SizedBox(height: 12),
                 Text(

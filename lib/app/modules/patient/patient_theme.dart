@@ -14,13 +14,13 @@ class PatientStyles {
   static const Color _slateLight = Color(0xFF5C6F87);
   static const Color _slateLighter = Color(0xFF8DA0B5);
   static const Color _borderLight = Color(0xFFE2E8F0);
-  static const Color _textSecondaryLight = Color(0xFF4A627A);
+  static const Color _textSecondaryLight = Color(0xFF4ECDC4);
   static const Color _textPrimaryLight = Color(0xFF1A3A5C);
   static const Color _surfaceLight = Color(0xFFF8FAFC);
-  static const Color _success = Color(0xFF10B981);
+  static const Color _success = Color(0xFF4ECDC4);
   static const Color _danger = Color(0xFFEF4444);
-  static const Color _warning = Color(0xFFF59E0B);
-  static const Color _ratingStar = Color(0xFFFEA500);
+  static const Color _warning = Color(0xFF4ECDC4);
+  static const Color _ratingStar = Color(0xFF4ECDC4);
 
   // Dark mode colors
   static const Color _darkSurface = Color(0xFF1E293B);

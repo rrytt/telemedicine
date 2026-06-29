@@ -70,7 +70,7 @@ class OnboardingView extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.asset('assets/images/icon.jpg', width: 32, height: 32, fit: BoxFit.cover),
+            child: Image.asset('assets/images/icon.png', width: 32, height: 32, fit: BoxFit.cover),
           ),
           const SizedBox(width: 8),
           Text('Telemedicine',
@@ -117,7 +117,7 @@ class OnboardingView extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: isLast ? controller.skip : controller.nextPage,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Get.isDarkMode ? const Color(0xFF0A7A8A) : const Color(0xFF2D9CDB),
+                  backgroundColor: const Color(0xFF4ECDC4),
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -141,7 +141,7 @@ class OnboardingView extends StatelessWidget {
               TextButton(
                 onPressed: controller.skip,
                 child: Text('Get Started',
-                  style: TextStyle(color: Get.isDarkMode ? const Color(0xFF0A7A8A) : const Color(0xFF2D9CDB), fontSize: 14),
+                  style: TextStyle(color: const Color(0xFF4ECDC4), fontSize: 14),
                 ),
               ),
             ],
@@ -177,7 +177,7 @@ class OnboardingView extends StatelessWidget {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF2D7A8A),
+              color: Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF4ECDC4),
               height: 1.3,
             ),
           ),

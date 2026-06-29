@@ -70,7 +70,7 @@ class _AboutViewState extends State<AboutView> {
                         ),
                       ],
                       image: DecorationImage(
-                        image: AssetImage('assets/images/icon.jpg'),
+                        image: AssetImage('assets/images/icon.png'),
                         fit: BoxFit.cover,
                       ),
                     ),

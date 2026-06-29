@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -6,8 +8,23 @@ import '../controllers/patient_controller.dart';
 import '../controllers/doctor_posts_controller.dart';
 import '../patient_theme.dart';
 
-class PatientDashboardView extends StatelessWidget {
+class PatientDashboardView extends StatefulWidget {
   const PatientDashboardView({super.key});
+
+  @override
+  State<PatientDashboardView> createState() => _PatientDashboardViewState();
+}
+
+class _PatientDashboardViewState extends State<PatientDashboardView> {
+  bool _showGreeting = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(seconds: 15), () {
+      if (mounted) setState(() => _showGreeting = false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +47,7 @@ class PatientDashboardView extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.asset('assets/images/icon.jpg', width: 24, height: 24, fit: BoxFit.cover),
+                          child: Image.asset('assets/images/icon.png', width: 24, height: 24, fit: BoxFit.cover),
                         ),
                         const SizedBox(width: 6),
                         const Text(
@@ -52,23 +69,25 @@ class PatientDashboardView extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Hi , How can I help you?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    if (_showGreeting) ...[
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Hi , How can I help you?',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Consult doctors, order medication, or get care at home.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Consult doctors, order medication, or get care at home.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -321,8 +340,8 @@ class PatientDashboardView extends StatelessWidget {
               Get.toNamed(AppRoutes.patientProfile);
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Telemedicine'),
+        items: [
+          BottomNavigationBarItem(icon: Image.asset('assets/images/icon.png', width: 24, height: 24, fit: BoxFit.contain), label: 'Telemedicine'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'My Consults'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Notifications'),

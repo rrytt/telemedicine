@@ -57,7 +57,7 @@ class _RegisterViewState extends State<RegisterView> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset('assets/images/icon.jpg', width: 40, height: 40, fit: BoxFit.cover),
+                    child: Image.asset('assets/images/icon.png', width: 40, height: 40, fit: BoxFit.cover),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -77,7 +77,7 @@ class _RegisterViewState extends State<RegisterView> {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF0A7A8A),
+                  color: Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF4ECDC4),
                 ),
               ),
               const SizedBox(height: 16),
@@ -186,7 +186,7 @@ class _RegisterViewState extends State<RegisterView> {
                 child: ElevatedButton(
                   onPressed: _register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Get.isDarkMode ? const Color(0xFF0A7A8A) : const Color(0xFF8DD4E0),
+                    backgroundColor: const Color(0xFF4ECDC4),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -210,7 +210,7 @@ class _RegisterViewState extends State<RegisterView> {
                   child: Text(
                     "Already have an account?",
                     style: TextStyle(
-                      color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A),
+                      color: const Color(0xFF4ECDC4),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -243,7 +243,7 @@ class _RegisterViewState extends State<RegisterView> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Get.isDarkMode ? const Color(0xFF4ECDC4) : const Color(0xFF0A7A8A)),
+        borderSide: const BorderSide(color: Color(0xFF4ECDC4)),
       ),
     );
   }

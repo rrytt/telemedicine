@@ -231,9 +231,9 @@ class _PatientProfileViewState extends State<PatientProfileView> {
         unselectedItemColor: PatientStyles.textSecondary,
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
+            icon: Image.asset('assets/images/icon.png', width: 24, height: 24, fit: BoxFit.contain),
             label: 'Telemedicine',
           ),
           BottomNavigationBarItem(

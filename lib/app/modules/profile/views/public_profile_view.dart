@@ -123,7 +123,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [const Color(0xFF4ECDC4), PatientStyles.surface],
+            colors: [PatientStyles.teal, PatientStyles.surface],
             stops: const [0.0, 0.3],
           ),
         ),
@@ -155,7 +155,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
               ),
               Expanded(
                 child: isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF4ECDC4)))
+                    ? Center(child: CircularProgressIndicator(color: PatientStyles.teal))
                     : error.isNotEmpty
                         ? _buildError()
                         : SingleChildScrollView(
@@ -259,12 +259,12 @@ class _PublicProfileViewState extends State<PublicProfileView> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: const Color(0xFF4ECDC4).withValues(alpha: 0.15),
+            backgroundColor: PatientStyles.teal.withValues(alpha: 0.15),
             backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
             child: avatarUrl.isEmpty
                 ? Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                    style: const TextStyle(fontSize: 32, color: Color(0xFF4ECDC4), fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 32, color: PatientStyles.teal, fontWeight: FontWeight.w700),
                   )
                 : null,
           ),
@@ -278,12 +278,12 @@ class _PublicProfileViewState extends State<PublicProfileView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                color: PatientStyles.teal.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 specialty,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF4ECDC4), fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 14, color: PatientStyles.teal, fontWeight: FontWeight.w500),
               ),
             ),
           ],
@@ -302,7 +302,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                 ...List.generate(5, (i) {
                   return Icon(
                     i < averageRating.round() ? Icons.star : Icons.star_border,
-                    color: const Color(0xFFFEA500),
+                    color: PatientStyles.ratingStar,
                     size: 20,
                   );
                 }),
@@ -329,7 +329,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
         icon: const Icon(Icons.calendar_today, color: Colors.white),
         label: const Text('Book Appointment', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4ECDC4),
+          backgroundColor: PatientStyles.teal,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
@@ -385,7 +385,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
   Widget _infoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF4ECDC4)),
+        Icon(icon, size: 20, color: PatientStyles.teal),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -422,9 +422,9 @@ class _PublicProfileViewState extends State<PublicProfileView> {
           ),
           const SizedBox(height: 16),
           if (isLoadingReviews)
-            const Center(child: Padding(
+            Center(child: Padding(
               padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(color: Color(0xFF4ECDC4)),
+              child: CircularProgressIndicator(color: PatientStyles.teal),
             ))
           else ...[
             Row(
@@ -441,7 +441,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                       children: List.generate(5, (i) {
                         return Icon(
                           i < averageRating.round() ? Icons.star : Icons.star_border,
-                          color: const Color(0xFFFEA500),
+                          color: PatientStyles.ratingStar,
                           size: 16,
                         );
                       }),
@@ -464,8 +464,8 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                   icon: Icon(hasReviewed ? Icons.edit_rounded : Icons.star_border_rounded, size: 18),
                   label: Text(hasReviewed ? 'Edit Your Rating' : 'Rate This Doctor'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF4ECDC4),
-                    side: const BorderSide(color: Color(0xFF4ECDC4)),
+                  foregroundColor: PatientStyles.teal,
+                  side: BorderSide(color: PatientStyles.teal),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
@@ -482,12 +482,12 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: const Color(0xFF4ECDC4).withValues(alpha: 0.1),
+                      backgroundColor: PatientStyles.teal.withValues(alpha: 0.1),
                       child: Text(
                         (review.patientName?.isNotEmpty ?? false)
                             ? review.patientName![0].toUpperCase()
                             : 'A',
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF4ECDC4), fontWeight: FontWeight.w600),
+                        style: TextStyle(fontSize: 14, color: PatientStyles.teal, fontWeight: FontWeight.w600),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -506,7 +506,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                                 children: List.generate(5, (i) {
                                   return Icon(
                                     i < review.rating ? Icons.star : Icons.star_border,
-                                    color: const Color(0xFFFEA500),
+                                    color: PatientStyles.ratingStar,
                                     size: 12,
                                   );
                                 }),
@@ -582,7 +582,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                         return IconButton(
                           icon: Icon(
                             starNum <= selectedRating ? Icons.star_rounded : Icons.star_border_rounded,
-                            color: const Color(0xFFFEA500),
+                            color: PatientStyles.ratingStar,
                             size: 40,
                           ),
                           onPressed: () => setDialogState(() => selectedRating = starNum),
@@ -615,7 +615,7 @@ class _PublicProfileViewState extends State<PublicProfileView> {
                         await _loadReviews(doctorId);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4ECDC4),
+        backgroundColor: PatientStyles.teal,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),

@@ -47,7 +47,7 @@ class AdminDashboardView extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset('assets/images/icon.jpg', width: 48, height: 48, fit: BoxFit.cover),
+                      child: Image.asset('assets/images/icon.png', width: 48, height: 48, fit: BoxFit.cover),
                     ),
                     const SizedBox(height: 12),
                     Text(

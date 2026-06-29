@@ -521,7 +521,7 @@ class _RatingCardState extends State<_RatingCard> {
       decoration: DoctorStyles.cardDecoration(borderRadius: 16),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.star_rounded, color: Color(0xFFFEA500), size: 28),
+          Icon(Icons.star_rounded, color: DoctorStyles.ratingStar, size: 28),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -5,8 +5,8 @@ import '../controllers/auth_controller.dart';
 
 Color get _navy => Get.isDarkMode ? const Color(0xFFF1F5F9) : const Color(0xFF1A3A5C);
 const Color _teal = Color(0xFF4ECDC4);
-const Color _green = Color(0xFF10B981);
-const Color _amber = Color(0xFFFEA500);
+const Color _green = Color(0xFF4ECDC4);
+const Color _amber = Color(0xFF4ECDC4);
 Color get _slate => Get.isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF5C6F87);
 Color get _border => Get.isDarkMode ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
@@ -75,7 +75,7 @@ class AccountTypeView extends GetView<AuthController> {
                                 ),
                               ],
                               image: DecorationImage(
-                                image: AssetImage('assets/images/icon.jpg'),
+                                image: AssetImage('assets/images/icon.png'),
                                 fit: BoxFit.cover,
                               ),
                             ),

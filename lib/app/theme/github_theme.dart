@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class GithubTheme {
   // Medical-themed colors
   static const Color primary = Color(0xFF4ECDC4);
-  static const Color secondary = Color(0xFF10B981);
-  static const Color accent = Color(0xFFF59E0B);
+  static const Color secondary = Color(0xFF4ECDC4);
+  static const Color accent = Color(0xFF4ECDC4);
   static const Color error = Color(0xFFEF4444);
-  static const Color success = Color(0xFF10B981);
+  static const Color success = Color(0xFF4ECDC4);
 
   // Background colors
   static const Color bg = Color(0xFFF8FAFC); // Light medical background
@@ -25,13 +25,13 @@ class GithubTheme {
 
   // Status colors
   static const Color info = Color(0xFF4ECDC4);
-  static const Color warning = Color(0xFFF59E0B);
+  static const Color warning = Color(0xFF4ECDC4);
   static const Color danger = Color(0xFFEF4444);
 
   // Status surfaces
-  static const Color infoSurface = Color(0xFFDDF4FF);
+  static const Color infoSurface = Color(0xFFD0F8F4);
   static const Color warningSurface = Color(0xFFFFF3F2);
-  static const Color successSurface = Color(0xFFDCFCE7);
+  static const Color successSurface = Color(0xFFD0F8F4);
   static const Color dangerSurface = Color(0xFFFFF3F2);
   static const Color mutedSurface = Color(0xFFF6F8FA);
 
@@ -43,7 +43,7 @@ class GithubTheme {
   );
 
   static const LinearGradient successGradient = LinearGradient(
-    colors: [Color(0xFF10B981), Color(0xFF059669)],
+    colors: [Color(0xFF4ECDC4), Color(0xFF3BA99E)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
