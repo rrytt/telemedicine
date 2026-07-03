@@ -37,6 +37,8 @@ create table if not exists public.profiles (
   phone_number text,
   specialty text,
   bio text,
+  blood_type text,
+  medical_record text,
   consultation_fee numeric,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -44,6 +46,12 @@ create table if not exists public.profiles (
 
 alter table public.profiles
   add column if not exists is_approved boolean not null default false;
+
+alter table public.profiles
+  add column if not exists blood_type text;
+
+alter table public.profiles
+  add column if not exists medical_record text;
 
 -- Appointments
 create table if not exists public.appointments (
